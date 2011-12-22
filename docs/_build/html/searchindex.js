@@ -1,0 +1,1 @@
+Search.setIndex({desctypes:{},terms:{nagpars:0,search:0,document:0,welcom:0,index:0,modul:0,soon:0,templat:0,note:0,moment:0,empti:0,indic:0,tabl:0,veri:0,content:0,page:0},titles:["Welcome to NagParser&#8217;s documentation!"],modules:{},descrefs:{},filenames:["index"]})
