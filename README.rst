@@ -6,7 +6,7 @@ PLEASE READ THIS BEFORE USING
 
 
 This project lives at https://github.com/zebpalmer/NagParser
-
+Documentation for it can be found at http://nagparser.readthedocs.org/
 
 These scripts were a small subset of a larger project and were originally written to parse Nagios status data and integrate it into a real time Operations Dashboard. While most of the dashboard is proprietary we've decided to rip out this parser and offer it to the Nagios community for use in your own projects.  This code is provided under GPLv3 (see LICENSE.txt). 
 
