@@ -1,42 +1,38 @@
 #!/usr/bin/env python
 
 import re
-import string
-from NagiosObj import Nagios
+from model import Nag
 
-def NagiosParser(importantservicegroups = None):
-    '''Parses the Nagios Status and Object cache files, returns nagios object'''
-
-    #these will move to a config file
-    statusfile = './status.dat'
-    objectcache = './objects.cache'
-    files = [statusfile, objectcache]
-
-
+def parse(config):
     tempobjs = []
-
+    
+    files = config['files']
+    importantservicegroups = config['importantservicegroups']
+    
+    nag = None
+    
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
         tempfile.close
-
-        if nagios == None:
-            nagios = Nagios()
-
+        
+        if nag == None:
+            nag = Nag()
+        
         sectionsnames = ['hoststatus','servicestatus','programstatus','define servicegroup']
         for section in sectionsnames:
             pat = re.compile(section +' \{([\S\s]*?)\}',re.DOTALL)
-
+    
             for sectioncontent in pat.findall(content):
-                if section == 'hoststatus':
-                    temp = Nagios.Host(nagios)
-                elif section == 'servicestatus':
-                    temp = Nagios.Service(nagios)
+                if section == 'hoststatus': 
+                    temp = Nag.Host(nag)
+                elif section == 'servicestatus': 
+                    temp = Nag.Service(nag)
                 elif section == 'programstatus':
-                    temp = nagios
+                    temp = nag
                 elif section == 'define servicegroup':
-                    temp = Nagios.ServiceGroup(nagios)
-
+                    temp = Nag.ServiceGroup(nag)
+                
                 for attr in sectioncontent.splitlines():
                     attr = attr.strip()
                     if len(attr) == 0 or attr.startswith('#'):
@@ -51,26 +47,21 @@ def NagiosParser(importantservicegroups = None):
                         value = attr.replace(shortattr+delim, '')
                         temp.__dict__[shortattr] = value
                 tempobjs.append(temp)
+    
+    hosts = filter(lambda x: isinstance(x, Nag.Host), tempobjs)
+    services = filter(lambda x: isinstance(x, Nag.Service), tempobjs)
+    servicegroups = filter(lambda x: isinstance(x, Nag.ServiceGroup), tempobjs)
 
-    hosts = filter(lambda x: isinstance(x, Nagios.Host), tempobjs)
-    services = filter(lambda x: isinstance(x, Nagios.Service), tempobjs)
-    servicegroups = filter(lambda x: isinstance(x, Nagios.ServiceGroup), tempobjs)
-
-    if importantservicegroups != None:
-        servicegroups = filter(lambda x: string.find(str(importantservicegroups), x.servicegroup_name) >= 0, servicegroups)
-
+    nag.importantservicegroups = importantservicegroups
+    
     if len(hosts):
-        nagios.hosts = hosts
+        nag.hosts = hosts
     if len(services):
-        nagios.services = services
+        nag.services = services
     if len(servicegroups):
-        nagios.servicegroups = servicegroups
-
-    return nagios
+        nag._servicegroups = servicegroups
+    
+    return nag
 
 if __name__ == "__main__":
-
-    nagios = NagiosParser()
-
-    print nagios.lastupdated
-
+    pass
