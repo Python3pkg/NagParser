@@ -1,2 +1,2 @@
-from factory import parse
-from Nag import Nag
+from nagparser.factory import parse
+from nagparser.Nag import Nag

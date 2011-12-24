@@ -5,13 +5,13 @@ import time
 
 import os 
 
-from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
+from nagparser.nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 
-class NagDefinition:
+class NagDefinition(object):
     DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-    STALETHRESHOLD = 240                 #Should be set to Nagios check timeout or the longest time in seconds a check might take
-    IGNORESTALEDATA = False
-    NAGIOSCOMMANDFILE = '/var/lib/nagios3/rw/nagios.cmd'
+    STALE_THRESHOLD = 240       #Should be set to Nagios check timeout or the longest time in seconds a check might take
+    IGNORE_STALE_DATA = False
+    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
     APIKEY = None
     
     def getnowtimestamp(self):
@@ -23,7 +23,8 @@ class NagDefinition:
         else:
             self.nag = nag
     
-    def _get_attributes(self):
+    @property
+    def attributes(self):
         '''Returns a list of tuples with each tuple representing an attribute'''
 
         output = []
@@ -34,7 +35,7 @@ class NagDefinition:
                 output.append(t)
 
         return output
-    attributes = property(_get_attributes)
+    
     
     def getbad(self, objtype, items = None):
         if items == None:
@@ -45,7 +46,6 @@ class NagDefinition:
     def getbadservices(self):
         return filter(lambda x: x.status[0] != 'ok', self.services)
         #return self.getbad(Nag.Service, self.services)
-    pass
 
     def classname(self):
         parts = str(self.__class__).lower().split('.')
@@ -60,7 +60,7 @@ class NagDefinition:
         selfclassname = self._classname(self.__class__)
         outputformat = outputformat.lower()
         
-        '''Setup'''
+        #Setup
         if outputformat == 'xml':
             doc = xml.Document()
             output = doc.createElement(selfclassname)
@@ -70,7 +70,7 @@ class NagDefinition:
         if isservicegroup == False and selfclassname == 'servicegroup':
             isservicegroup = True
 
-        '''Attributes'''
+        #Attributes
         for attr in self.attributes:
             if outputformat == 'xml':
                 output.setAttribute(attr[0], attr[1])
@@ -118,18 +118,18 @@ class NagDefinition:
         TIMEFORMAT = '%Y%m%d%H%M'
         try:
             start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
-        except:
+        except Exception:
             try:
                 start = int(time.mktime(getdatetimefromnicetime(starttime).timetuple()))
-            except:
+            except Exception:
                 return 'Error: "StartTime" not in correct format.'
             
         try:
             end = int(time.mktime(time.strptime(endtime, TIMEFORMAT)))
-        except:
+        except Exception:
             try:
                 end = int(time.mktime(getdatetimefromnicetime(endtime, datetime.fromtimestamp(start)).timetuple()))
-            except:
+            except Exception:
                 return 'Error: "EndTime" not in correct format.'
             
         values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author, 'start_time': start, 'end_time': end, 'comment': comment}
@@ -160,7 +160,7 @@ class NagDefinition:
                 if self.nag.APIKEY == None or apikey not in self.nag.APIKEY:
                     return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
                 else:
-                    commandfile = os.open(self.NAGIOSCOMMANDFILE, os.O_RDWR | os.O_NONBLOCK)
+                    commandfile = os.open(self.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
                     os.write(commandfile, command + '\n')
                     os.close(commandfile)
             except Exception, e:
@@ -173,9 +173,10 @@ class Nag(NagDefinition):
     
     name = ''
     
-    def _get_last_updated(self):
+    @property
+    def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
-    lastupdated = property(_get_last_updated)
+    
     
     def gethost(self, host_name):
         return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name', first = True)
@@ -194,21 +195,23 @@ class Nag(NagDefinition):
         else:
             return lastchange
     
-    def getservicegroups(self, onlyimportant = False):
+    @property
+    def servicegroups(self, onlyimportant = False):
         if onlyimportant:
             return filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups)
         else:
             return self._servicegroups
-    servicegroups = property(getservicegroups)
+
     
     class Host(NagDefinition):
         def _get_services(self):
             return filter(lambda x: x.host_name == self.host_name, self.nag.services)
         services = property(_get_services)
         
-        def _get_name(self):
+        @property
+        def name(self):
             return self.host_name
-        name = property(_get_name)
+
         
         def laststatuschange(self, returntimesincenow = True):
             lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow = False)).laststatuschange(returntimesincenow = False)
@@ -219,24 +222,26 @@ class Nag(NagDefinition):
                 return lastchange
         
     class Service(NagDefinition):        
-        def _get_host(self):
+        '''TODO: insert doc string here'''
+        @property
+        def host(self):
             host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
             if len(host):
                 host = host[0]
             return host
-        host = property(_get_host)
         
-        def _get_name(self):
+        
+        @property
+        def name(self):
             return self.service_description
-        name = property(_get_name)
         
-        def _get_status(self):
+        def status(self):
             isdowntime = False
             if int(self.scheduled_downtime_depth) > 0: isdowntime = True
             
-            if ((time.time() - self.STALETHRESHOLD) > int(self.next_check) and 
+            if ((time.time() - self.STALE_THRESHOLD) > int(self.next_check) and 
                 self.active_checks_enabled == '1' and 
-                self.IGNORESTALEDATA == False):
+                self.IGNORE_STALE_DATA == False):
                 return 'stale', isdowntime
             if int(self.current_state) == 2:
                 return 'critical', isdowntime
@@ -245,7 +250,7 @@ class Nag(NagDefinition):
             if int(self.current_state) > 2 or int(self.current_state) < 0:
                 return 'unknown', isdowntime
             return 'ok', isdowntime
-        status = property(_get_status)
+
         
         def laststatuschange(self, returntimesincenow = True, timestamp = None):
             if timestamp:
@@ -259,7 +264,8 @@ class Nag(NagDefinition):
                 return lastchange
         
     class ServiceGroup(NagDefinition):
-        def _get_services(self):
+        @property
+        def services(self):
             tempservices = []
             
             members = self.members.split(',')
@@ -268,13 +274,13 @@ class Nag(NagDefinition):
                     tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
 
             return tempservices
-        services = property(_get_services)
 
-        def _get_name(self):
+        @property
+        def name(self):
             return self.alias
-        name = property(_get_name)
-        
-        def _get_status(self):
+
+        @property
+        def status(self):
             if len(filter(lambda x: x.status[0] == 'stale', self.services)):
                 return 'unknown'
             
@@ -297,7 +303,7 @@ class Nag(NagDefinition):
                           x.status[0] == 'stale', self.services)):
                 return 'unknown'
             return 'ok'
-        status = property(_get_status)
+        
         
         def laststatuschange(self, returntimesincenow = True):
             lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow = False)).laststatuschange(returntimesincenow = False)

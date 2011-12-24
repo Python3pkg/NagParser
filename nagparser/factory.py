@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import re
-from Nag import Nag
+from nagparser.Nag import Nag
 
 def parse(config):
     tempobjs = []
@@ -10,11 +10,12 @@ def parse(config):
     importantservicegroups = config['importantservicegroups']
     
     nag = None
+
     
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
-        tempfile.close
+        tempfile.close()
         
         if nag == None:
             nag = Nag()
@@ -64,10 +65,4 @@ def parse(config):
     return nag
 
 if __name__ == "__main__":
-    basedir = '~/'
-    importantservicegroups = None
-    files = [basedir + 'objects.cache', basedir + 'status.dat']
-    config = {'importantservicegroups': importantservicegroups, 'files': files}
-    nag = parse(config)
-
-    print nag.services
+    pass
