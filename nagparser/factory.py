@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import re
-from model import Nag
+from nagparser.Nag import Nag
 
 def parse(config):
     tempobjs = []
@@ -10,18 +10,19 @@ def parse(config):
     importantservicegroups = config['importantservicegroups']
     
     nag = None
+
     
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
-        tempfile.close
+        tempfile.close()
         
         if nag == None:
             nag = Nag()
         
-        sectionsnames = ['hoststatus','servicestatus','programstatus','define servicegroup']
+        sectionsnames = ['hoststatus', 'servicestatus', 'programstatus', 'define servicegroup']
         for section in sectionsnames:
-            pat = re.compile(section +' \{([\S\s]*?)\}',re.DOTALL)
+            pat = re.compile(section +' \{([\S\s]*?)\}', re.DOTALL)
     
             for sectioncontent in pat.findall(content):
                 if section == 'hoststatus': 

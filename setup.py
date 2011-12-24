@@ -4,7 +4,7 @@ import sys
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 1
+VERSION_PATCH = 2
 
 
 
@@ -23,8 +23,9 @@ setup(
     author_email='zeb@zebpalmer.com',
     packages=['nagparser', 'nagparser.test'],
     package_dir={
-        'nagparser':  "/nagparser"},
+        'nagparser':  "nagparser"},
     #scripts=[ "bin/script.py"]
+    package_data={'nagparser.test': ['data/*.test']},
     url='http://github.com/zebpalmer/NagiosParser',
     license='GPLv3',
     description='Parse realtime Nagios Data from status.dat and objects.cache, do useful stuff with it',
