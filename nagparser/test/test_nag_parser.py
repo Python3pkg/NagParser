@@ -19,5 +19,5 @@ class test_nagparser():
     
     def test_lastupdated_matches_testdata(self):
         '''Test to ensure the timestamp matches expected given test data'''
-        nag = nagparser.parse(config)
+        nag = nagparser.parse(self.config)
         asert (nag.lastupdated == self.lastupdated)
