@@ -1,9 +1,5 @@
 # ignore settings so we don't accidently commit an API key
 settings.cfg
-# don't need to commit any cache files or compiled files either
-status.dat
-objects.cache
-*.cache
 *.pyc
 # other files, we don't need
 *~

@@ -1,14 +1,15 @@
 # Some basic Nose tests....
 from nose.tools import *
 import nagparser
-
+import os
 
 
 class test_nagparser():
     def setup(self):
-        basedir = './'
+        testdir, filename = os.path.split(os.path.abspath(__file__))
+        basedir = testdir + '/data/'
         importantservicegroups = None
-        files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
+        files = [basedir + 'objects_cache.test', basedir + 'status_dat.test']
         self.config = {'importantservicegroups': importantservicegroups, 'files': files}    
         self.lastupdated = '2011-10-31 12:08:22'
         
@@ -20,4 +21,4 @@ class test_nagparser():
     def test_lastupdated_matches_testdata(self):
         '''Test to ensure the timestamp matches expected given test data'''
         nag = nagparser.parse(self.config)
-        asert (nag.lastupdated == self.lastupdated)
+        assert (str(nag.lastupdated) == str(self.lastupdated))
