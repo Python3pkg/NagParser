@@ -31,7 +31,7 @@ def getdatetimefromnicetime(nicetime, basedatetime = None):
     else:
         base = basedatetime
 
-    result = [0,0,0,0]
+    result = [0, 0, 0, 0]
     sections = nicetime.lower().split(':')
     if len(sections) == 1:
         sections = nicetime.split(' ')

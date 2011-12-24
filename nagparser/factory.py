@@ -20,9 +20,9 @@ def parse(config):
         if nag == None:
             nag = Nag()
         
-        sectionsnames = ['hoststatus','servicestatus','programstatus','define servicegroup']
+        sectionsnames = ['hoststatus', 'servicestatus', 'programstatus', 'define servicegroup']
         for section in sectionsnames:
-            pat = re.compile(section +' \{([\S\s]*?)\}',re.DOTALL)
+            pat = re.compile(section +' \{([\S\s]*?)\}', re.DOTALL)
     
             for sectioncontent in pat.findall(content):
                 if section == 'hoststatus': 

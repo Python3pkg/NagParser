@@ -55,7 +55,8 @@ class NagDefinition(object):
         parts = str(classname).lower().split('.')
         return parts[len(parts)-1]
     
-    def genoutput(self, outputformat = 'xml', returnxmldocument = True, recursive = True, items = [], isservicegroup = False):
+    def genoutput(self, outputformat = 'xml', returnxmldocument = True, 
+                  recursive = True, items = [], isservicegroup = False):
         
         selfclassname = self._classname(self.__class__)
         outputformat = outputformat.lower()
@@ -89,7 +90,8 @@ class NagDefinition(object):
             items = [getattr(self, order[0])]
                 
         for obj in items:
-            temp = obj.genoutput(recursive = False, outputformat = outputformat, returnxmldocument = False, isservicegroup = isservicegroup)
+            temp = obj.genoutput(recursive = False, outputformat = outputformat, 
+                                 returnxmldocument = False, isservicegroup = isservicegroup)
             if outputformat == 'xml':
                 output.appendChild(temp)
                     
@@ -111,63 +113,65 @@ class NagDefinition(object):
             return hosts
         
     def getservice(self, service_description):
-        return self.getobj(objtype = Nag.Service, value = service_description, attribute = 'service_description', first = True)
+        return self.getobj(objtype = Nag.Service, value = service_description, 
+                           attribute = 'service_description', first = True)
 
-    def scheduledowntime(self, author, starttime, endtime, comment, apikey = None, doappend = False):
+    #def scheduledowntime(self, author, starttime, endtime, comment, apikey = None, doappend = False):
           
-        TIMEFORMAT = '%Y%m%d%H%M'
-        try:
-            start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
-        except Exception:
-            try:
-                start = int(time.mktime(getdatetimefromnicetime(starttime).timetuple()))
-            except Exception:
-                return 'Error: "StartTime" not in correct format.'
+        #TIMEFORMAT = '%Y%m%d%H%M'
+        #try:
+            #start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
+        #except Exception:
+            #try:
+                #start = int(time.mktime(getdatetimefromnicetime(starttime).timetuple()))
+            #except Exception:
+                #return 'Error: "StartTime" not in correct format.'
             
-        try:
-            end = int(time.mktime(time.strptime(endtime, TIMEFORMAT)))
-        except Exception:
-            try:
-                end = int(time.mktime(getdatetimefromnicetime(endtime, datetime.fromtimestamp(start)).timetuple()))
-            except Exception:
-                return 'Error: "EndTime" not in correct format.'
+        #try:
+            #end = int(time.mktime(time.strptime(endtime, TIMEFORMAT)))
+        #except Exception:
+            #try:
+                #end = int(time.mktime(getdatetimefromnicetime(endtime, datetime.fromtimestamp(start)).timetuple()))
+            #except Exception:
+                #return 'Error: "EndTime" not in correct format.'
             
-        values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author, 'start_time': start, 'end_time': end, 'comment': comment}
+        #values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author, 
+                  #'start_time': start, 'end_time': end, 'comment': comment}
         
-        if self.classname() == 'servicegroup':
-            values['servicegroup_name'] = self.servicegroup_name
-            command = 'SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        elif self.classname() == 'host':
-            values['host_name'] = self.host_name
-            command = 'SCHEDULE_HOST_SVC_DOWNTIME;<host_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        elif self.classname() == 'service':
-            values['host_name'] = self.host_name
-            values['service_description'] = self.service_description
-            command = 'SCHEDULE_SVC_DOWNTIME;<host_name>;<service_description>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        else:
-            return 'Error: Invalid Nag object'
+        #if self.classname() == 'servicegroup':
+            #values['servicegroup_name'] = self.servicegroup_name
+            #command = 'SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
+        #elif self.classname() == 'host':
+            #values['host_name'] = self.host_name
+            #command = 'SCHEDULE_HOST_SVC_DOWNTIME;<host_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
+        #elif self.classname() == 'service':
+            #values['host_name'] = self.host_name
+            #values['service_description'] = self.service_description
+            #command = 'SCHEDULE_SVC_DOWNTIME;<host_name>;<service_description>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
+        #else:
+            #return 'Error: Invalid Nag object'
 
-        for value in values:
-            command = command.replace('<' + value + '>', str(values[value]))
+        #for value in values:
+            #command = command.replace('<' + value + '>', str(values[value]))
         
-        if command.find('<') > 0:
-            return 'Error: Incomplete Nagios command file format substitution '
+        #if command.find('<') > 0:
+            #return 'Error: Incomplete Nagios command file format substitution '
         
-        command = '[' + str(int(time.time())) + '] ' + command
+        #command = '[' + str(int(time.time())) + '] ' + command
         
-        if doappend:
-            try:
-                if self.nag.APIKEY == None or apikey not in self.nag.APIKEY:
-                    return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
-                else:
-                    commandfile = os.open(self.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
-                    os.write(commandfile, command + '\n')
-                    os.close(commandfile)
-            except Exception, e:
-                print e
-                return 'Error: Appending to the Nagios command file'
+        #if doappend:
+            #try:
+                #if self.nag.APIKEY == None or apikey not in self.nag.APIKEY:
+                    #return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
+                #else:
+                    #commandfile = os.open(self.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
+                    #os.write(commandfile, command + '\n')
+                    #os.close(commandfile)
+            #except Exception, e:
+                #print e
+                #return 'Error: Appending to the Nagios command file'
         
-        return command
+        #return command
     
 class Nag(NagDefinition):
     

@@ -2,9 +2,11 @@
 
 import nagparser
 
-basedir = './'
+basedir = './nagparser/test/'
 importantservicegroups = None
-files = [basedir + 'objects.cache', basedir + 'status.dat']
+files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
 config = {'importantservicegroups': importantservicegroups, 'files': files}
 nag = nagparser.parse(config)
+
+print nag.lastupdated
 
