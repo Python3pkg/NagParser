@@ -23,7 +23,7 @@ setup(
     author_email='zeb@zebpalmer.com',
     packages=['nagparser', 'nagparser.test'],
     package_dir={
-        'nagparser':  "/nagparser"},
+        'nagparser':  "nagparser"},
     #scripts=[ "bin/script.py"]
     url='http://github.com/zebpalmer/NagiosParser',
     license='GPLv3',
