@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import re
-from nagparser.Nag import Nag
+from Nag import Nag
 
 def parse(config):
     tempobjs = []

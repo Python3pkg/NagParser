@@ -5,7 +5,7 @@ import time
 
 import os 
 
-from nagparser.nicetime import getnicetimefromdatetime, getdatetimefromnicetime
+from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 
 class NagDefinition(object):
     '''TODO: insert doc string here'''
@@ -202,13 +202,15 @@ class Nag(NagDefinition):
         else:
             return lastchange
     
-    @property
-    def servicegroups(self, onlyimportant = False):
+    def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
             return filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups)
         else:
             return self._servicegroups
-
+    
+    @property
+    def servicegroups(self):
+        return self.getservicegroups()
     
     class Host(NagDefinition):
         '''TODO: insert doc string here'''
@@ -243,6 +245,7 @@ class Nag(NagDefinition):
         def name(self):
             return self.service_description
         
+        @property
         def status(self):
             isdowntime = False
             if int(self.scheduled_downtime_depth) > 0: isdowntime = True
@@ -259,7 +262,6 @@ class Nag(NagDefinition):
                 return 'unknown', isdowntime
             return 'ok', isdowntime
 
-        
         def laststatuschange(self, returntimesincenow = True, timestamp = None):
             if timestamp:
                 lastchange = datetime.fromtimestamp(float(timestamp))
