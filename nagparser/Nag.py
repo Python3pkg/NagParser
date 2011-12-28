@@ -8,6 +8,7 @@ import os
 from nagparser.nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 
 class NagDefinition(object):
+    '''TODO: insert doc string here'''
     DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     STALE_THRESHOLD = 240       #Should be set to Nagios check timeout or the longest time in seconds a check might take
     IGNORE_STALE_DATA = False
@@ -39,7 +40,7 @@ class NagDefinition(object):
     
     def getbad(self, objtype, items = None):
         if items == None:
-            return filter(lambda x: int(x.__dict__['current_state']) > 0, getattr(self, self._classname(objtype)+'s'))
+            return filter(lambda x: int(x.__dict__['current_state']) > 0, getattr(self, self.classname(objtype)+'s'))
         else:
             return filter(lambda x: int(x.__dict__['current_state']) > 0, items)
         
@@ -47,18 +48,19 @@ class NagDefinition(object):
         return filter(lambda x: x.status[0] != 'ok', self.services)
         #return self.getbad(Nag.Service, self.services)
 
-    def classname(self):
-        parts = str(self.__class__).lower().split('.')
+    def classname(self, classname = None):
+        if classname:
+            classbase = classname
+        else:
+            classbase = self.__class__
+        
+        parts = str(classbase).split("'")[1].lower().split('.')
         return parts[len(parts)-1]
 
-    def _classname(self, classname):
-        parts = str(classname).lower().split('.')
-        return parts[len(parts)-1]
-    
     def genoutput(self, outputformat = 'xml', returnxmldocument = True, 
                   recursive = True, items = [], isservicegroup = False):
         
-        selfclassname = self._classname(self.__class__)
+        selfclassname = self.classname(self.__class__)
         outputformat = outputformat.lower()
         
         #Setup
@@ -102,15 +104,15 @@ class NagDefinition(object):
         return output
     
     def getobj(self, objtype, value, attribute = 'host_name', first = False):
-        hosts = filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self._classname(objtype)+'s'))
+        objs = filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s'))
         
         if first:
-            if hosts:
-                return hosts[0]
+            if objs:
+                return objs[0]
             else:
                 return None
         else:
-            return hosts
+            return objs
         
     def getservice(self, service_description):
         return self.getobj(objtype = Nag.Service, value = service_description, 
@@ -309,7 +311,6 @@ class Nag(NagDefinition):
                           x.status[0] == 'stale', self.services)):
                 return 'unknown'
             return 'ok'
-        
         
         def laststatuschange(self, returntimesincenow = True):
             lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow = False)).laststatuschange(returntimesincenow = False)
