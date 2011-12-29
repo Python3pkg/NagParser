@@ -6,6 +6,7 @@ import time
 import os 
 
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
+from inspect import isclass
 
 class NagDefinition(object):
     '''TODO: insert doc string here'''
@@ -31,10 +32,9 @@ class NagDefinition(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if attrtype != list and attrtype != types.InstanceType:
+            if attrtype != types.ListType and not issubclass(attrtype, NagDefinition):
                 t = attr, self.__dict__[attr]
                 output.append(t)
-
         return output
     
     
@@ -57,18 +57,20 @@ class NagDefinition(object):
         parts = str(classbase).split("'")[1].lower().split('.')
         return parts[len(parts)-1]
 
-    def genoutput(self, outputformat = 'xml', returnxmldocument = True, 
+    def genoutput(self, outputformat = 'xml', returnxmlstring = True, 
                   recursive = True, items = [], isservicegroup = False):
         
-        selfclassname = self.classname(self.__class__)
+        selfclassname = self.classname()
         outputformat = outputformat.lower()
         
         #Setup
+        output = {}
         if outputformat == 'xml':
             doc = xml.Document()
             output = doc.createElement(selfclassname)
         elif outputformat == 'json':
-            output = ''
+            output['objtype'] = selfclassname
+            output['attributes'] = {}
             
         if isservicegroup == False and selfclassname == 'servicegroup':
             isservicegroup = True
@@ -77,8 +79,10 @@ class NagDefinition(object):
         for attr in self.attributes:
             if outputformat == 'xml':
                 output.setAttribute(attr[0], attr[1])
+            if outputformat == 'json':
+                output['attributes'][attr[0]] = attr[1]
         
-        order = ['host', 'service']
+        order = ['host', 'service', 'servicegroup']
         if recursive:
             if items == []:
                 if order[0] == selfclassname: 
@@ -87,19 +91,28 @@ class NagDefinition(object):
                     if isservicegroup:
                         items = getattr(self, order[1]+'s')
                     else:
-                        items = getattr(self, order[0]+'s')
-        elif isservicegroup and selfclassname == 'service':
+                        try:
+                            items = getattr(self, order[0]+'s')
+                            #items.extend(getattr(self, order[2]+'s')) # Disabled until I get the servicegroup logic working correctly
+                        except Exception:
+                            pass
+                        
+        if isservicegroup and selfclassname == 'service':
             items = [getattr(self, order[0])]
-                
+
         for obj in items:
-            temp = obj.genoutput(recursive = False, outputformat = outputformat, 
-                                 returnxmldocument = False, isservicegroup = isservicegroup)
+            temp = obj.genoutput(recursive = True, outputformat = outputformat, 
+                                 returnxmlstring = False, isservicegroup = isservicegroup)
             if outputformat == 'xml':
                 output.appendChild(temp)
-                    
-        if returnxmldocument and outputformat == 'xml':
-            doc.appendChild(output)
-            output = doc.toprettyxml(indent = '  ')
+            if outputformat == 'json':
+                if obj.classname() + 's' not in output.keys():
+                    output[obj.classname() + 's'] = []
+                output[obj.classname() + 's'].append(temp)
+                
+        if returnxmlstring and outputformat == 'xml':
+            output = 'XML output is broken, sorry, try JSON its good for you'
+            #output.toprettyxml(indent = '  ')
             
         return output
     
@@ -184,7 +197,6 @@ class Nag(NagDefinition):
     def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
     
-    
     def gethost(self, host_name):
         return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name', first = True)
     
@@ -214,9 +226,10 @@ class Nag(NagDefinition):
     
     class Host(NagDefinition):
         '''TODO: insert doc string here'''
-        def _get_services(self):
+        
+        @property
+        def services(self):
             return filter(lambda x: x.host_name == self.host_name, self.nag.services)
-        services = property(_get_services)
         
         @property
         def name(self):
