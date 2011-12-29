@@ -8,5 +8,10 @@ files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
 config = {'importantservicegroups': importantservicegroups, 'files': files}
 nag = nagparser.parse(config)
 
-print nag.lastupdated
+json = nag.genoutput('json')
 
+#print json
+print json.keys()
+print json['hosts'][1]['attributes']['host_name']
+print json['hosts'][1]['services'][1]['attributes']
+print json['hosts'][1]['services'][1]['attributes']['plugin_output']
