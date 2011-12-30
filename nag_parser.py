@@ -2,9 +2,10 @@
 
 import nagparser
 
-basedir = './nagparser/test/'
+basedir = 'nagparser/test/data/'
 importantservicegroups = None
 files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
+print files
 config = {'importantservicegroups': importantservicegroups, 'files': files}
 nag = nagparser.parse(config)
 
