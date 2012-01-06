@@ -9,3 +9,5 @@ settings.cfg
 *.bak
 .project
 .pydevproject
+MANIFEST
+dist

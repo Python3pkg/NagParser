@@ -9,7 +9,7 @@ class test_nagparser():
         testdir, filename = os.path.split(os.path.abspath(__file__))
         basedir = testdir + '/data/'
         importantservicegroups = None
-        files = [basedir + 'objects_cache.test', basedir + 'status_dat.test']
+        files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
         self.config = {'importantservicegroups': importantservicegroups, 'files': files}    
         self.lastupdated = '2011-10-31 12:08:22'
         
