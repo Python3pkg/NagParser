@@ -25,7 +25,7 @@ setup(
     package_dir={
         'nagparser':  "nagparser"},
     #scripts=[ "bin/script.py"]
-    package_data={'nagparser.test': ['data/*.cache', '*.dat']},
+    package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
     url='http://github.com/zebpalmer/NagiosParser',
     license='GPLv3',
     description='Parse realtime Nagios Data from status.dat and objects.cache, do useful stuff with it',
