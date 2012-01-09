@@ -1,9 +1,10 @@
 import time
 import os
 
+from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
+from datetime import datetime
+
 class NagCommands(object):
-    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
-    
     def __init__(self, nag):
         self.nag = nag
         
@@ -53,7 +54,7 @@ class NagCommands(object):
                 if self.nag.nag.APIKEY == None or apikey not in self.nag.nag.APIKEY:
                     return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
                 else:
-                    commandfile = os.open(self.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
+                    commandfile = os.open(self.nag.nag.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
                     os.write(commandfile, command + '\n')
                     os.close(commandfile)
             except Exception, e:

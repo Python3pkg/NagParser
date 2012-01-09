@@ -3,6 +3,8 @@ from datetime import datetime
 import time
 import pprint
 
+from NagCommands import NagCommands
+
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
 
@@ -12,6 +14,7 @@ class NagDefinition(object):
     STALE_THRESHOLD = 240       #Should be set to Nagios check timeout or the longest time in seconds a check might take
     IGNORE_STALE_DATA = False
     APIKEY = None
+    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
     
     def getnowtimestamp(self):
         return time.time()
@@ -21,6 +24,10 @@ class NagDefinition(object):
             self.nag = self
         else:
             self.nag = nag
+            
+    @property
+    def commands(self):
+        return NagCommands(self)
     
     @property
     def attributes(self):
