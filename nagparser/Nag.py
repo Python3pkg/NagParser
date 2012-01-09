@@ -1,9 +1,9 @@
-import xml.dom.minidom as xml
 import types
 from datetime import datetime
 import time
+import pprint
 
-import os 
+from NagCommands import NagCommands
 
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
@@ -13,8 +13,8 @@ class NagDefinition(object):
     DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     STALE_THRESHOLD = 240       #Should be set to Nagios check timeout or the longest time in seconds a check might take
     IGNORE_STALE_DATA = False
-    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
     APIKEY = None
+    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
     
     def getnowtimestamp(self):
         return time.time()
@@ -24,6 +24,10 @@ class NagDefinition(object):
             self.nag = self
         else:
             self.nag = nag
+            
+    @property
+    def commands(self):
+        return NagCommands(self)
     
     @property
     def attributes(self):
@@ -33,8 +37,16 @@ class NagDefinition(object):
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
             if attrtype != types.ListType and not issubclass(attrtype, NagDefinition):
-                t = attr, self.__dict__[attr]
-                output.append(t)
+                t = self.__dict__[attr]
+                try:
+                    t = int(str(t))
+                except ValueError:
+                    try:
+                        t = float(str(t))
+                    except ValueError:
+                        pass
+            
+                output.append((attr, t))
         return output
     
     
@@ -57,62 +69,46 @@ class NagDefinition(object):
         parts = str(classbase).split("'")[1].lower().split('.')
         return parts[len(parts)-1]
 
-    def genoutput(self, outputformat = 'xml', returnxmlstring = True, 
-                  recursive = True, items = [], isservicegroup = False):
-        
-        selfclassname = self.classname()
+    def genoutput(self, outputformat = 'json', items = [], finaloutput = True, prittyprint = True):
         outputformat = outputformat.lower()
         
         #Setup
         output = {}
-        if outputformat == 'xml':
-            doc = xml.Document()
-            output = doc.createElement(selfclassname)
-        elif outputformat == 'json':
-            output['objtype'] = selfclassname
+        if outputformat == 'json':
+            output['objtype'] = self.classname()
             output['attributes'] = {}
-            
-        if isservicegroup == False and selfclassname == 'servicegroup':
-            isservicegroup = True
+        else:
+            return 'Invalid Output'
 
         #Attributes
         for attr in self.attributes:
-            if outputformat == 'xml':
-                output.setAttribute(attr[0], attr[1])
             if outputformat == 'json':
-                output['attributes'][attr[0]] = attr[1]
+                if attr[1] is None:
+                    output['attributes'][attr[0]] = 'none'
+                else:
+                    output['attributes'][attr[0]] = attr[1]
         
         order = ['host', 'service', 'servicegroup']
-        if recursive:
-            if items == []:
-                if order[0] == selfclassname: 
-                    items = getattr(self, order[1]+'s')
-                else:
-                    if isservicegroup:
-                        items = getattr(self, order[1]+'s')
-                    else:
-                        try:
-                            items = getattr(self, order[0]+'s')
-                            #items.extend(getattr(self, order[2]+'s')) # Disabled until I get the servicegroup logic working correctly
-                        except Exception:
-                            pass
-                        
-        if isservicegroup and selfclassname == 'service':
-            items = [getattr(self, order[0])]
-
+        if items == []:
+            if order[0] == self.classname(): 
+                items = getattr(self, order[1]+'s')
+            else:
+                try:
+                    items = getattr(self, order[0]+'s')
+                except Exception:
+                    pass
+                    
         for obj in items:
-            temp = obj.genoutput(recursive = True, outputformat = outputformat, 
-                                 returnxmlstring = False, isservicegroup = isservicegroup)
-            if outputformat == 'xml':
-                output.appendChild(temp)
+            temp = obj.genoutput(outputformat = outputformat, finaloutput = False)
             if outputformat == 'json':
                 if obj.classname() + 's' not in output.keys():
                     output[obj.classname() + 's'] = []
                 output[obj.classname() + 's'].append(temp)
-                
-        if returnxmlstring and outputformat == 'xml':
-            output = 'XML output is broken, sorry, try JSON its good for you'
-            #output.toprettyxml(indent = '  ')
+            
+        if finaloutput:
+            if outputformat == 'json':
+                if prittyprint:
+                    output = pprint.PrettyPrinter().pformat(output)
             
         return output
     
@@ -130,63 +126,6 @@ class NagDefinition(object):
     def getservice(self, service_description):
         return self.getobj(objtype = Nag.Service, value = service_description, 
                            attribute = 'service_description', first = True)
-
-    def scheduledowntime(self, author, starttime, endtime, comment, apikey = None, doappend = False):
-          
-        TIMEFORMAT = '%Y%m%d%H%M'
-        try:
-            start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
-        except Exception:
-            try:
-                start = int(time.mktime(getdatetimefromnicetime(starttime).timetuple()))
-            except Exception:
-                return 'Error: "StartTime" not in correct format.'
-            
-        try:
-            end = int(time.mktime(time.strptime(endtime, TIMEFORMAT)))
-        except Exception:
-            try:
-                end = int(time.mktime(getdatetimefromnicetime(endtime, datetime.fromtimestamp(start)).timetuple()))
-            except Exception:
-                return 'Error: "EndTime" not in correct format.'
-            
-        values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author, 
-                  'start_time': start, 'end_time': end, 'comment': comment}
-        
-        if self.classname() == 'servicegroup':
-            values['servicegroup_name'] = self.servicegroup_name
-            command = 'SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        elif self.classname() == 'host':
-            values['host_name'] = self.host_name
-            command = 'SCHEDULE_HOST_SVC_DOWNTIME;<host_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        elif self.classname() == 'service':
-            values['host_name'] = self.host_name
-            values['service_description'] = self.service_description
-            command = 'SCHEDULE_SVC_DOWNTIME;<host_name>;<service_description>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
-        else:
-            return 'Error: Invalid Nag object'
-
-        for value in values:
-            command = command.replace('<' + value + '>', str(values[value]))
-        
-        if command.find('<') > 0:
-            return 'Error: Incomplete Nagios command file format substitution '
-        
-        command = '[' + str(int(time.time())) + '] ' + command
-        
-        if doappend:
-            try:
-                if self.nag.APIKEY == None or apikey not in self.nag.APIKEY:
-                    return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
-                else:
-                    commandfile = os.open(self.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
-                    os.write(commandfile, command + '\n')
-                    os.close(commandfile)
-            except Exception, e:
-                print e
-                return 'Error: Appending to the Nagios command file'
-        
-        return command
     
 class Nag(NagDefinition):
     '''TODO: insert doc string here'''
