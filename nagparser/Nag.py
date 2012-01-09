@@ -2,7 +2,6 @@ import types
 from datetime import datetime
 import time
 import pprint
-import simplejson
 
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
@@ -77,7 +76,10 @@ class NagDefinition(object):
         #Attributes
         for attr in self.attributes:
             if outputformat == 'json':
-                output['attributes'][attr[0]] = attr[1]
+                if attr[1] is None:
+                    output['attributes'][attr[0]] = 'none'
+                else:
+                    output['attributes'][attr[0]] = attr[1]
         
         order = ['host', 'service', 'servicegroup']
         if items == []:
@@ -98,7 +100,6 @@ class NagDefinition(object):
             
         if finaloutput:
             if outputformat == 'json':
-                output = simplejson.loads(simplejson.dumps(output))
                 if prittyprint:
                     output = pprint.PrettyPrinter().pformat(output)
             
