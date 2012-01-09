@@ -2,16 +2,15 @@
 
 import nagparser
 
-basedir = 'nagparser/test/data/'
+basedir = './nagparser/test/data/'
 importantservicegroups = None
 files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
-print files
 config = {'importantservicegroups': importantservicegroups, 'files': files}
 nag = nagparser.parse(config)
 
-json = nag.genoutput('json')
+json = nag.genoutput('json', prittyprint = False)
 
-#print json
+print json
 print json.keys()
 print json['hosts'][1]['attributes']['host_name']
 print json['hosts'][1]['services'][1]['attributes']
