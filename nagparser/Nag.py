@@ -230,10 +230,11 @@ class Nag(NagDefinition):
         def services(self):
             tempservices = []
             
-            members = self.members.split(',')
-            for i in range(len(members)):
-                if i % 2 == 0:
-                    tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
+            if 'members' in self.__dict__.keys():
+                members = self.members.split(',')
+                for i in range(len(members)):
+                    if i % 2 == 0:
+                        tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
 
             return tempservices
 
