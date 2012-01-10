@@ -58,7 +58,6 @@ class NagDefinition(object):
         
     def getbadservices(self):
         return filter(lambda x: x.status[0] != 'ok', self.services)
-        #return self.getbad(Nag.Service, self.services)
 
     def classname(self, classname = None):
         if classname:
@@ -155,9 +154,28 @@ class Nag(NagDefinition):
     
     def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
-            return filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups)
+            servicegroups = filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups)
         else:
-            return self._servicegroups
+            servicegroups = self._servicegroups
+            
+            '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
+            noservicegroup = Nag.ServiceGroup()
+            noservicegroup.alias = 'No Service Group'
+            noservicegroup.nag = self.nag
+            noservicegroup.servicegroup_name = 'noservicegroup'
+            noservicegroup.members = ''
+            
+            servicesinservicegroup = []
+            for servicegroup in self._servicegroups:
+                servicesinservicegroup.extend(servicegroup.services)
+            
+            for services in list(set(self.services) - set(servicesinservicegroup)):
+                noservicegroup.members = noservicegroup.members + services.host.host_name + ',' + services.name + ','
+                
+            noservicegroup.members = noservicegroup.members.strip(',')
+            servicegroups.append(noservicegroup)
+
+        return servicegroups
     
     @property
     def servicegroups(self):
@@ -224,18 +242,27 @@ class Nag(NagDefinition):
                 return getnicetimefromdatetime(lastchange)
             else:
                 return lastchange
+            
+        @property
+        def servicegroups(self):
+            servicegroups = []
+            for servicegroup in self.nag.getservicegroups():
+                if self in servicegroup.services:
+                    servicegroups.append(servicegroup)
+            return servicegroups
+            
         
     class ServiceGroup(NagDefinition):
         @property
         def services(self):
             tempservices = []
             
-            if 'members' in self.__dict__.keys():
+            if 'members' in self.__dict__.keys() and self.members != '':
                 members = self.members.split(',')
                 for i in range(len(members)):
                     if i % 2 == 0:
                         tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
-
+ 
             return tempservices
 
         @property
