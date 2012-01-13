@@ -6,12 +6,11 @@ from Nag import Nag
 def parse(config):
     tempobjs = []
     
-    files = config['files']
-    importantservicegroups = config['importantservicegroups']
+    files = config.files
+    importantservicegroups = config.IMPORTANTSERVICEGROUPS
     
     nag = None
 
-    
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
@@ -54,6 +53,7 @@ def parse(config):
     servicegroups = filter(lambda x: isinstance(x, Nag.ServiceGroup), tempobjs)
 
     nag.importantservicegroups = importantservicegroups
+    nag.config = config
     
     if len(hosts):
         nag.hosts = hosts

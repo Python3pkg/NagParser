@@ -9,13 +9,7 @@ from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
 
 class NagDefinition(object):
-    '''TODO: insert doc string here'''
-    DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-    STALE_THRESHOLD = 240       #Should be set to Nagios check timeout or the longest time in seconds a check might take
-    IGNORE_STALE_DATA = False
-    APIKEY = None
-    NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
-    
+    '''TODO: insert doc string here'''    
     def getnowtimestamp(self):
         return time.time()
         
@@ -36,7 +30,7 @@ class NagDefinition(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if attrtype != types.ListType and not issubclass(attrtype, NagDefinition):
+            if type(attrtype) is not types.ListType and not issubclass(attrtype, NagDefinition):
                 t = self.__dict__[attr]
                 try:
                     t = int(str(t))
@@ -220,9 +214,9 @@ class Nag(NagDefinition):
             isdowntime = False
             if int(self.scheduled_downtime_depth) > 0: isdowntime = True
             
-            if ((time.time() - self.STALE_THRESHOLD) > int(self.next_check) and 
+            if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and 
                 self.active_checks_enabled == '1' and 
-                self.IGNORE_STALE_DATA == False):
+                self.nag.config.IGNORE_STALE_DATA == False):
                 return 'stale', isdowntime
             if int(self.current_state) == 2:
                 return 'critical', isdowntime

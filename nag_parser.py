@@ -1,22 +1,34 @@
 #!/usr/bin/env python
 
-import nagparser
-from nagparser import Nag
+def examplegetpermissionssoverridefunction(apikey):
+    print "I'm in coolbeans"
+    return ['Cool Beans']
 
+import nagparser
+
+#Setup the config options
 basedir = './nagparser/test/data/'
-importantservicegroups = None
 files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
-config = {'importantservicegroups': importantservicegroups, 'files': files}
+
+config = nagparser.NagConfig(files = files)
+
+#Extra config options
+config.APIKEYS = ['test', 'hi']
+config.NAGIOS_CMD_FILE = '/home/ARBFUND/mkennedy/nagios.cmd'
+
+#config.getpermissions = examplegetpermissionssoverridefunction
+
+#get the nag object
 nag = nagparser.parse(config)
 
+#Do something interesting
 json = nag.genoutput('json', prittyprint = False)
 
-Nag.APIKEY = 'Test'
-
-print nag.servicegroups[1].commands.scheduledowntime('user', 'now', '1h', 'Testing', apikey = 'Test', doappend = False)
+print nag.servicegroups[1].commands.scheduledowntime('user', 'now', '1h', 'Testing', apikey = 'hi', doappend = True)
 
 #print json
 print json.keys()
 print json['hosts'][1]['attributes']['host_name']
 print json['hosts'][1]['services'][1]['attributes']
 print json['hosts'][1]['services'][1]['attributes']['plugin_output']
+
