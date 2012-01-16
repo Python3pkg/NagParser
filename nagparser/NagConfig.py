@@ -7,6 +7,7 @@ class NagConfig(object):
     NAGIOS_CMD_FILE = '/var/lib/nagios3/rw/nagios.cmd'
     IMPORTANTSERVICEGROUPS = {}
     basicAPIKEYS = []
+    DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     
     def __init__(self, files):
         allfilesexist = True
