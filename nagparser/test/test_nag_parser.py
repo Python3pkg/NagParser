@@ -13,7 +13,7 @@ class test_nagparser():
         
         self.config = nagparser.NagConfig(files = files)
         self.config.IMPORTANTSERVICEGROUPS = importantservicegroups
-        self.lastupdated = '2012-01-16 10:40:00'
+        self.lastupdated = '2011-10-31 12:08:22'
         
     def test_nag_objcreation(self):
         '''Just create the nag object, fail on any exception'''
