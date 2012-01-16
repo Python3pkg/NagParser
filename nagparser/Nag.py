@@ -4,6 +4,7 @@ import time
 import pprint
 
 from NagCommands import NagCommands
+from NagList import NagList
 
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
@@ -46,12 +47,12 @@ class NagDefinition(object):
     
     def getbad(self, objtype, items = None):
         if items == None:
-            return filter(lambda x: int(x.__dict__['current_state']) > 0, getattr(self, self.classname(objtype)+'s'))
+            return NagList(filter(lambda x: int(x.__dict__['current_state']) > 0, getattr(self, self.classname(objtype)+'s')))
         else:
-            return filter(lambda x: int(x.__dict__['current_state']) > 0, items)
+            return NagList(filter(lambda x: int(x.__dict__['current_state']) > 0, items))
         
     def getbadservices(self):
-        return filter(lambda x: x.status[0] != 'ok', self.services)
+        return NagList(filter(lambda x: x.status[0] != 'ok', self.services))
 
     def classname(self, classname = None):
         if classname:
@@ -105,20 +106,17 @@ class NagDefinition(object):
             
         return output
     
-    def getobj(self, objtype, value, attribute = 'host_name', first = False):
-        objs = filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s'))
-        
-        if first:
-            if objs:
-                return objs[0]
-            else:
-                return None
-        else:
-            return objs
+    def getobj(self, objtype, value, attribute = 'host_name'):
+        return NagList(filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s')))
         
     def getservice(self, service_description):
-        return self.getobj(objtype = Nag.Service, value = service_description, 
-                           attribute = 'service_description', first = True)
+        return self.getobj(objtype = Nag.Service, value = service_description, attribute = 'service_description').first
+    
+    def gethost(self, host_name):
+        return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name').first
+    
+    def getservicegroup(self, servicegroup_name):
+        return self.getobj(objtype = Nag.ServiceGroup, value = servicegroup_name, attribute = 'servicegroup_name').first
     
 class Nag(NagDefinition):
     '''TODO: insert doc string here'''
@@ -128,12 +126,6 @@ class Nag(NagDefinition):
     @property
     def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
-    
-    def gethost(self, host_name):
-        return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name', first = True)
-    
-    def getservicegroup(self, servicegroup_name):
-        return self.getobj(objtype = Nag.ServiceGroup, value = servicegroup_name, attribute = 'servicegroup_name', first = True)
     
     def getbadhosts(self):
         return self.getbad(Nag.Host)
@@ -169,7 +161,7 @@ class Nag(NagDefinition):
             noservicegroup.members = noservicegroup.members.strip(',')
             servicegroups.append(noservicegroup)
 
-        return servicegroups
+        return NagList(servicegroups)
     
     @property
     def servicegroups(self):
@@ -180,7 +172,7 @@ class Nag(NagDefinition):
         
         @property
         def services(self):
-            return filter(lambda x: x.host_name == self.host_name, self.nag.services)
+            return NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
         
         @property
         def name(self):
@@ -243,7 +235,7 @@ class Nag(NagDefinition):
             for servicegroup in self.nag.getservicegroups():
                 if self in servicegroup.services:
                     servicegroups.append(servicegroup)
-            return servicegroups
+            return NagList(servicegroups)
             
         
     class ServiceGroup(NagDefinition):
@@ -257,7 +249,7 @@ class Nag(NagDefinition):
                     if i % 2 == 0:
                         tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
  
-            return tempservices
+            return NagList(tempservices)
 
         @property
         def name(self):

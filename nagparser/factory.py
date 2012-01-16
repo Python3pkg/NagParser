@@ -2,6 +2,7 @@
 
 import re
 from Nag import Nag
+from NagList import NagList
 
 def parse(config):
     tempobjs = []
@@ -56,13 +57,14 @@ def parse(config):
     nag.config = config
     
     if len(hosts):
-        nag.hosts = hosts
+        nag.hosts = NagList(hosts)
     if len(services):
-        nag.services = services
+        nag.services = NagList(services)
     if len(servicegroups):
-        nag._servicegroups = servicegroups
-    
+        nag._servicegroups = NagList(servicegroups)
+
     return nag
+
 
 if __name__ == "__main__":
     pass
