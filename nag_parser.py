@@ -22,13 +22,17 @@ config.NAGIOS_CMD_FILE = '/home/ARBFUND/mkennedy/nagios.cmd'
 nag = nagparser.parse(config)
 
 #Do something interesting
-json = nag.genoutput('json', prittyprint = False)
 
-print nag.servicegroups[1].commands.scheduledowntime('user', 'now', '1h', 'Testing', apikey = 'hi', doappend = True)
+print nag.services.first
 
-#print json
-print json.keys()
-print json['hosts'][1]['attributes']['host_name']
-print json['hosts'][1]['services'][1]['attributes']
-print json['hosts'][1]['services'][1]['attributes']['plugin_output']
+
+#json = nag.genoutput('json', prittyprint = False)
+#
+#print nag.servicegroups[1].commands.scheduledowntime('user', 'now', '1h', 'Testing', apikey = 'hi', doappend = True)
+#
+##print json
+#print json.keys()
+#print json['hosts'][1]['attributes']['host_name']
+#print json['hosts'][1]['services'][1]['attributes']
+#print json['hosts'][1]['services'][1]['attributes']['plugin_output']
 
