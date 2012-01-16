@@ -10,7 +10,9 @@ class test_nagparser():
         basedir = testdir + '/data/'
         importantservicegroups = None
         files = [basedir + 'test_objects.cache', basedir + 'test_status.dat']
-        self.config = {'importantservicegroups': importantservicegroups, 'files': files}    
+        
+        self.config = nagparser.NagConfig(files = files)
+        self.config.IMPORTANTSERVICEGROUPS = importantservicegroups
         self.lastupdated = '2011-10-31 12:08:22'
         
     def test_nag_objcreation(self):

@@ -8,7 +8,7 @@ class NagCommands(object):
     def __init__(self, nag):
         self.nag = nag
         
-    def scheduledowntime(self, author, starttime, endtime, comment, apikey = None, doappend = False):
+    def scheduledowntime(self, author, starttime, endtime, comment, apikey = 'default', doappend = False):
         TIMEFORMAT = '%Y%m%d%H%M'
         try:
             start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
@@ -48,13 +48,13 @@ class NagCommands(object):
             return 'Error: Incomplete Nagios command file format substitution '
         
         command = '[' + str(int(time.time())) + '] ' + command
-        
+
         if doappend:
             try:
-                if self.nag.nag.APIKEY == None or apikey not in self.nag.nag.APIKEY:
-                    return 'Error: Invalid or Missing API Key.  A valid API Key is required to do a POST.'
+                if not self.nag.nag.config.getpermissions(apikey):
+                    return 'Error: Invalid or Missing API Key.  A valid API Key is required.'
                 else:
-                    commandfile = os.open(self.nag.nag.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
+                    commandfile = os.open(self.nag.nag.config.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
                     os.write(commandfile, command + '\n')
                     os.close(commandfile)
             except Exception, e:
