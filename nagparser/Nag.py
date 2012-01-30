@@ -119,7 +119,7 @@ class NagDefinition(object):
         return self.getobj(objtype = Nag.ServiceGroup, value = servicegroup_name, attribute = 'servicegroup_name').first
     
 class Nag(NagDefinition):
-    '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a has is of type Nag.Host.'''
+    '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
     name = ''
     
@@ -181,7 +181,7 @@ class Nag(NagDefinition):
         return self.getservicegroups()
     
     class Host(NagDefinition):
-        '''Host represent all host definitions.  '''
+        '''Host represents a host definition found in status.dat.'''
         __services = None
         @property
         def services(self):
@@ -203,7 +203,7 @@ class Nag(NagDefinition):
                 return lastchange
         
     class Service(NagDefinition):        
-        '''TODO: insert doc string here'''
+        '''Service represents a service definition found in status.dat'''
         
         __host = None
         __servicegroups = None
@@ -267,6 +267,7 @@ class Nag(NagDefinition):
             
         
     class ServiceGroup(NagDefinition):
+        '''ServiceGroup represents a service group definition found in objects.cache.'''
         __services = None
         __status = None
         
