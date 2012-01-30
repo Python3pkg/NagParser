@@ -27,7 +27,7 @@ class NagDefinition(object):
     @property
     def attributes(self):
         '''Returns a list of tuples with each tuple representing an attribute'''
-
+        
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
@@ -42,8 +42,8 @@ class NagDefinition(object):
                         pass
             
                 output.append((attr, t))
+
         return output
-    
     
     def getbad(self, objtype, items = None):
         if items == None:
@@ -160,7 +160,20 @@ class Nag(NagDefinition):
                 
             noservicegroup.members = noservicegroup.members.strip(',')
             servicegroups.append(noservicegroup)
-
+            
+            '''Build "allservices" servicegroup'''
+            allservicesservicegroup = Nag.ServiceGroup()
+            allservicesservicegroup.alias = 'All Services'
+            allservicesservicegroup.nag = self.nag
+            allservicesservicegroup.servicegroup_name = 'allservices'
+            allservicesservicegroup.members = ''
+            
+            for services in self.services:
+                allservicesservicegroup.members = allservicesservicegroup.members + services.host.host_name + ',' + services.name + ','
+                
+            allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
+            servicegroups.append(allservicesservicegroup)
+            
         return NagList(servicegroups)
     
     @property
@@ -169,10 +182,12 @@ class Nag(NagDefinition):
     
     class Host(NagDefinition):
         '''TODO: insert doc string here'''
-        
+        __services = None
         @property
         def services(self):
-            return NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
+            if self.__services is None:
+                self.__services = NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
+            return self.__services
         
         @property
         def name(self):
@@ -189,12 +204,19 @@ class Nag(NagDefinition):
         
     class Service(NagDefinition):        
         '''TODO: insert doc string here'''
+        
+        __host = None
+        __servicegroups = None
+        __status = None
+        
         @property
         def host(self):
-            host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
-            if len(host):
-                host = host[0]
-            return host
+            if self.__host is None:
+                self.__host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
+                if len(self.__host):
+                    self.__host = self.__host[0]
+            
+            return self.__host
         
         
         @property
@@ -203,20 +225,24 @@ class Nag(NagDefinition):
         
         @property
         def status(self):
-            isdowntime = False
-            if int(self.scheduled_downtime_depth) > 0: isdowntime = True
-            
-            if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and 
-                self.active_checks_enabled == '1' and 
-                self.nag.config.IGNORE_STALE_DATA == False):
-                return 'stale', isdowntime
-            if int(self.current_state) == 2:
-                return 'critical', isdowntime
-            if int(self.current_state) == 1:
-                return 'warning', isdowntime
-            if int(self.current_state) > 2 or int(self.current_state) < 0:
-                return 'unknown', isdowntime
-            return 'ok', isdowntime
+            if self.__status is None:
+                isdowntime = False
+                if int(self.scheduled_downtime_depth) > 0: isdowntime = True
+                
+                if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and 
+                    self.active_checks_enabled == '1' and 
+                    self.nag.config.IGNORE_STALE_DATA == False):
+                    self.__status = 'stale', isdowntime
+                elif int(self.current_state) == 2:
+                    self.__status = 'critical', isdowntime
+                elif int(self.current_state) == 1:
+                    self.__status = 'warning', isdowntime
+                elif int(self.current_state) > 2 or int(self.current_state) < 0:
+                    self.__status = 'unknown', isdowntime
+                else:
+                    self.__status = 'ok', isdowntime
+
+            return self.__status
 
         def laststatuschange(self, returntimesincenow = True, timestamp = None):
             if timestamp:
@@ -231,25 +257,34 @@ class Nag(NagDefinition):
             
         @property
         def servicegroups(self):
-            servicegroups = []
-            for servicegroup in self.nag.getservicegroups():
-                if self in servicegroup.services:
-                    servicegroups.append(servicegroup)
-            return NagList(servicegroups)
+            if self.__servicegroups is None:
+                servicegroups = []
+                for servicegroup in self.nag.getservicegroups():
+                    if self in servicegroup.services:
+                        servicegroups.append(servicegroup)
+                self.__servicegroups = NagList(servicegroups)
+                
+            return self.__servicegroups
             
         
     class ServiceGroup(NagDefinition):
+        __services = None
+        __status = None
+        
         @property
         def services(self):
-            tempservices = []
-            
-            if 'members' in self.__dict__.keys() and self.members != '':
-                members = self.members.split(',')
-                for i in range(len(members)):
-                    if i % 2 == 0:
-                        tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
- 
-            return NagList(tempservices)
+            if self.__services is None:
+                tempservices = []
+                
+                if 'members' in self.__dict__.keys() and self.members != '':
+                    members = self.members.split(',')
+                    for i in range(len(members)):
+                        if i % 2 == 0:
+                            tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
+     
+                self.__services = NagList(tempservices)
+                
+            return self.__services
 
         @property
         def name(self):
@@ -257,28 +292,32 @@ class Nag(NagDefinition):
 
         @property
         def status(self):
-            if len(filter(lambda x: x.status[0] == 'stale', self.services)):
-                return 'unknown'
+            if self.__status is None:
+                if len(filter(lambda x: x.status[0] == 'stale', self.services)):
+                    self.__status = 'unknown'
+                
+                if len(filter(lambda x: int(x.current_state) == 2 and
+                                        int(x.scheduled_downtime_depth) == 0, 
+                                            self.services)):
+                    self.__status = 'critical'
+                
+                elif len(filter(lambda x: int(x.current_state) == 1 and
+                                        int(x.scheduled_downtime_depth) == 0, 
+                                            self.services)):
+                    self.__status = 'warning'
+                
+                elif len(filter(lambda x: int(x.scheduled_downtime_depth) > 0 and
+                                        int(x.current_state) != 0, 
+                                            self.services)):
+                    self.__status = 'downtime'
+                
+                elif len(filter(lambda x: x.status[0] == 'unknown' or 
+                              x.status[0] == 'stale', self.services)):
+                    self.__status = 'unknown'
+                else:
+                    self.__status = 'ok'
             
-            if len(filter(lambda x: int(x.current_state) == 2 and
-                                    int(x.scheduled_downtime_depth) == 0, 
-                                        self.services)):
-                return 'critical'
-            
-            if len(filter(lambda x: int(x.current_state) == 1 and
-                                    int(x.scheduled_downtime_depth) == 0, 
-                                        self.services)):
-                return 'warning'
-            
-            if len(filter(lambda x: int(x.scheduled_downtime_depth) > 0 and
-                                    int(x.current_state) != 0, 
-                                        self.services)):
-                return 'downtime'
-            
-            if len(filter(lambda x: x.status[0] == 'unknown' or 
-                          x.status[0] == 'stale', self.services)):
-                return 'unknown'
-            return 'ok'
+            return self.__status
         
         def laststatuschange(self, returntimesincenow = True):
             lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow = False)).laststatuschange(returntimesincenow = False)
