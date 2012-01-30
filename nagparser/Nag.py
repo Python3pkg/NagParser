@@ -10,7 +10,7 @@ from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
 
 class NagDefinition(object):
-    '''TODO: insert doc string here'''    
+    '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
         return time.time()
         
@@ -119,7 +119,7 @@ class NagDefinition(object):
         return self.getobj(objtype = Nag.ServiceGroup, value = servicegroup_name, attribute = 'servicegroup_name').first
     
 class Nag(NagDefinition):
-    '''TODO: insert doc string here'''
+    '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a has is of type Nag.Host.'''
     
     name = ''
     
@@ -161,7 +161,7 @@ class Nag(NagDefinition):
             noservicegroup.members = noservicegroup.members.strip(',')
             servicegroups.append(noservicegroup)
             
-            '''Build "allservices" servicegroup'''
+            '''Build "allservices" sudo servicegroup'''
             allservicesservicegroup = Nag.ServiceGroup()
             allservicesservicegroup.alias = 'All Services'
             allservicesservicegroup.nag = self.nag
@@ -181,7 +181,7 @@ class Nag(NagDefinition):
         return self.getservicegroups()
     
     class Host(NagDefinition):
-        '''TODO: insert doc string here'''
+        '''Host represent all host definitions.  '''
         __services = None
         @property
         def services(self):
