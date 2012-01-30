@@ -47,12 +47,12 @@ class NagDefinition(object):
     
     def getbad(self, objtype, items = None):
         if items == None:
-            return NagList(filter(lambda x: int(x.__dict__['current_state']) > 0, getattr(self, self.classname(objtype)+'s')))
+            return NagList([x for x in getattr(self, self.classname(objtype)+'s') if int(x.__dict__['current_state']) > 0])
         else:
-            return NagList(filter(lambda x: int(x.__dict__['current_state']) > 0, items))
+            return NagList([x for x in items if int(x.__dict__['current_state']) > 0])
         
     def getbadservices(self):
-        return NagList(filter(lambda x: x.status[0] != 'ok', self.services))
+        return NagList([x for x in self.services if x.status[0] != 'ok'])
 
     def classname(self, classname = None):
         if classname:
@@ -107,7 +107,6 @@ class NagDefinition(object):
         return output
     
     def getobj(self, objtype, value, attribute = 'host_name'):
-        #return NagList(filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s')))
         return NagList([x for x in getattr(self, self.classname(objtype)+'s') if x.__dict__[attribute.lower()] == value])
         
     def getservice(self, service_description):
@@ -152,7 +151,7 @@ class Nag(NagDefinition):
     
     def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
-            servicegroups = NagList(filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups))
+            servicegroups = NagList([x for x in self._servicegroups if x.servicegroup_name in self.importantservicegroups])
         else:
             servicegroups = self._servicegroups
             
@@ -200,7 +199,6 @@ class Nag(NagDefinition):
         @property
         def services(self):
             if self.__services is None:
-                #self.__services = NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
                 self.__services = NagList([x for x in self.nag.services if x.host_name == self.host_name])
             return self.__services
         
@@ -227,7 +225,6 @@ class Nag(NagDefinition):
         @property
         def host(self):
             if self.__host is None:
-                #self.__host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
                 self.__host = [x for x in self.nag.hosts if x.host_name == self.host_name]
                 if len(self.__host):
                     self.__host = self.__host[0]
@@ -309,26 +306,19 @@ class Nag(NagDefinition):
         @property
         def status(self):
             if self.__status is None:
-                if len(filter(lambda x: x.status[0] == 'stale', self.services)):
+                if len([x for x in self.services if x.status[0] == 'stale']):
                     self.__status = 'unknown'
-                
-                if len(filter(lambda x: int(x.current_state) == 2 and
-                                        int(x.scheduled_downtime_depth) == 0, 
-                                            self.services)):
+
+                if len([x for x in self.services if int(x.current_state) == 2 and int(x.scheduled_downtime_depth) == 0]):
                     self.__status = 'critical'
-                
-                elif len(filter(lambda x: int(x.current_state) == 1 and
-                                        int(x.scheduled_downtime_depth) == 0, 
-                                            self.services)):
+
+                elif len([x for x in self.services if int(x.current_state) == 1 and int(x.scheduled_downtime_depth) == 0]):
                     self.__status = 'warning'
-                
-                elif len(filter(lambda x: int(x.scheduled_downtime_depth) > 0 and
-                                        int(x.current_state) != 0, 
-                                            self.services)):
+
+                elif len([x for x in self.services if int(x.scheduled_downtime_depth) > 0] and int(x.current_state) != 0):
                     self.__status = 'downtime'
-                
-                elif len(filter(lambda x: x.status[0] == 'unknown' or 
-                              x.status[0] == 'stale', self.services)):
+
+                elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
                     self.__status = 'unknown'
                 else:
                     self.__status = 'ok'

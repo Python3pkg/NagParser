@@ -52,10 +52,10 @@ def parse(config):
                         shortattr = attr.split(delim)[0].lower()
                         temp.__dict__[shortattr] = attr.replace(shortattr+delim, '')
                 tempobjs.append(temp)
-    
-    hosts = filter(lambda x: isinstance(x, Nag.Host), tempobjs)
-    services = filter(lambda x: isinstance(x, Nag.Service), tempobjs)
-    servicegroups = filter(lambda x: isinstance(x, Nag.ServiceGroup), tempobjs)
+
+    hosts = [x for x in tempobjs if isinstance(x, Nag.Host)]
+    services = [x for x in tempobjs if isinstance(x, Nag.Service)]
+    servicegroups = [x for x in tempobjs if isinstance(x, Nag.ServiceGroup)]
 
     nag.importantservicegroups = importantservicegroups
     nag.config = config

@@ -11,8 +11,6 @@ class NagList(list):
         if name == 'names':
             return [x.name for x in self]
         
-        #_name = str(name).replace('_', '-')
-        #obj = filter(lambda x: x.name == name, self)
         obj = [x for x in self if x.name == name]
         if obj:
             if len(obj) == 1:
