@@ -31,7 +31,7 @@ class NagDefinition(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if type(attrtype) is not types.ListType and not issubclass(attrtype, NagDefinition):
+            if attrtype is not types.ListType and attrtype is not NagList and not issubclass(attrtype, NagDefinition):
                 t = self.__dict__[attr]
                 try:
                     t = int(str(t))
@@ -217,7 +217,6 @@ class Nag(NagDefinition):
                     self.__host = self.__host[0]
             
             return self.__host
-        
         
         @property
         def name(self):
