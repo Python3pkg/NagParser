@@ -63,7 +63,7 @@ class NagDefinition(object):
         parts = str(classbase).split("'")[1].lower().split('.')
         return parts[len(parts)-1]
 
-    def genoutput(self, outputformat = 'json', items = [], finaloutput = True, prittyprint = True):
+    def genoutput(self, outputformat = 'json', items = [], finaloutput = True, prittyprint = False):
         outputformat = outputformat.lower()
         
         #Setup
