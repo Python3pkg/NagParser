@@ -107,17 +107,29 @@ class NagDefinition(object):
         return output
     
     def getobj(self, objtype, value, attribute = 'host_name'):
-        return NagList(filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s')))
+        #return NagList(filter(lambda x: x.__dict__[attribute.lower()] == value, getattr(self, self.classname(objtype)+'s')))
+        return NagList([x for x in getattr(self, self.classname(objtype)+'s') if x.__dict__[attribute.lower()] == value])
         
     def getservice(self, service_description):
-        return self.getobj(objtype = Nag.Service, value = service_description, attribute = 'service_description').first
+        #return self.getobj(objtype = Nag.Service, value = service_description, attribute = 'service_description').first
+        try:
+            return getattr(self.services, service_description)
+        except AttributeError:
+            return None
     
     def gethost(self, host_name):
-        return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name').first
+        #return self.getobj(objtype = Nag.Host, value = host_name, attribute = 'host_name').first
+        #return NagList([x for x in self.hosts if x.name == host_name]).first
+        try:
+            return getattr(self.hosts, host_name)
+        except AttributeError:
+            return None
     
     def getservicegroup(self, servicegroup_name):
+        #Note: Using NagList to get the object an attribute is not possible because servicegroups set their name attribute 
+        # to their alias which is not an identifier of a unique service group (unlike Host and Service which are)
         return self.getobj(objtype = Nag.ServiceGroup, value = servicegroup_name, attribute = 'servicegroup_name').first
-    
+
 class Nag(NagDefinition):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
@@ -140,7 +152,7 @@ class Nag(NagDefinition):
     
     def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
-            servicegroups = filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups)
+            servicegroups = NagList(filter(lambda x: x.servicegroup_name in self.importantservicegroups, self._servicegroups))
         else:
             servicegroups = self._servicegroups
             
@@ -174,7 +186,9 @@ class Nag(NagDefinition):
             allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
             servicegroups.append(allservicesservicegroup)
             
-        return NagList(servicegroups)
+            servicegroups = NagList(servicegroups)
+                
+        return servicegroups
     
     @property
     def servicegroups(self):
@@ -186,7 +200,8 @@ class Nag(NagDefinition):
         @property
         def services(self):
             if self.__services is None:
-                self.__services = NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
+                #self.__services = NagList(filter(lambda x: x.host_name == self.host_name, self.nag.services))
+                self.__services = NagList([x for x in self.nag.services if x.host_name == self.host_name])
             return self.__services
         
         @property
@@ -212,7 +227,8 @@ class Nag(NagDefinition):
         @property
         def host(self):
             if self.__host is None:
-                self.__host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
+                #self.__host = filter(lambda x: x.host_name == self.host_name, self.nag.hosts)
+                self.__host = [x for x in self.nag.hosts if x.host_name == self.host_name]
                 if len(self.__host):
                     self.__host = self.__host[0]
             
