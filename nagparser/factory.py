@@ -19,8 +19,13 @@ def parse(config):
         
         if nag == None:
             nag = Nag()
+        if '.cache' in filename:
+            sectionsnames = ['define servicegroup']
+        elif '.dat' in filename:
+            sectionsnames = ['hoststatus', 'servicestatus', 'programstatus']
+        else:
+            raise Exception('Invalid filename detected')
         
-        sectionsnames = ['hoststatus', 'servicestatus', 'programstatus', 'define servicegroup']
         for section in sectionsnames:
             pat = re.compile(section +' \{([\S\s]*?)\}', re.DOTALL)
     
@@ -45,13 +50,12 @@ def parse(config):
                             delim = '='
 
                         shortattr = attr.split(delim)[0].lower()
-                        value = attr.replace(shortattr+delim, '')
-                        temp.__dict__[shortattr] = value
+                        temp.__dict__[shortattr] = attr.replace(shortattr+delim, '')
                 tempobjs.append(temp)
-    
-    hosts = filter(lambda x: isinstance(x, Nag.Host), tempobjs)
-    services = filter(lambda x: isinstance(x, Nag.Service), tempobjs)
-    servicegroups = filter(lambda x: isinstance(x, Nag.ServiceGroup), tempobjs)
+
+    hosts = [x for x in tempobjs if isinstance(x, Nag.Host)]
+    services = [x for x in tempobjs if isinstance(x, Nag.Service)]
+    servicegroups = [x for x in tempobjs if isinstance(x, Nag.ServiceGroup)]
 
     nag.importantservicegroups = importantservicegroups
     nag.config = config
