@@ -283,21 +283,33 @@ class Nag(NagDefinition):
         '''ServiceGroup represents a service group definition found in objects.cache.'''
         __services = None
         __status = None
+        __hosts = None
         
         @property
         def services(self):
             if self.__services is None:
                 tempservices = []
-                
+                temphosts = []
                 if 'members' in self.__dict__.keys() and self.members != '':
                     members = self.members.split(',')
                     for i in range(len(members)):
                         if i % 2 == 0:
-                            tempservices.append(self.nag.gethost(members[i]).getservice(members[i+1]))
-     
+                            host = self.nag.gethost(members[i])
+                            if host not in temphosts:
+                                temphosts.append(host)
+                            tempservices.append(host.getservice(members[i+1]))
+                            
+                self.__hosts = NagList(temphosts)
                 self.__services = NagList(tempservices)
                 
             return self.__services
+        
+        @property
+        def hosts(self):
+            if self.__hosts is None:
+                self.services
+                
+            return self.__hosts
 
         @property
         def name(self):
