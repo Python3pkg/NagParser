@@ -315,7 +315,7 @@ class Nag(NagDefinition):
                 elif len([x for x in self.services if int(x.current_state) == 1 and int(x.scheduled_downtime_depth) == 0]):
                     self.__status = 'warning'
 
-                elif len([x for x in self.services if int(x.scheduled_downtime_depth) > 0] and int(x.current_state) != 0):
+                elif len([x for x in self.services if int(x.scheduled_downtime_depth) > 0 and int(x.current_state) != 0]):
                     self.__status = 'downtime'
 
                 elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
