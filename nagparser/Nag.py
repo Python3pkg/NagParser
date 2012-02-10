@@ -16,7 +16,7 @@ cache_opts = {
     'cache.type': 'memory',
     'cache.regions': 'short_term',
     'cache.enabled': True,
-    'cache.short_term.expire': '10'
+    'cache.short_term.expire': '600'
 }
 cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
