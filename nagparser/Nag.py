@@ -9,6 +9,13 @@ from NagList import NagList
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
 
+from beaker.cache import CacheManager
+from beaker.util import parse_cache_config_options
+
+cache_opts = { 'cache.type': 'memory' }
+
+cache = CacheManager(**parse_cache_config_options(cache_opts))
+
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
@@ -133,7 +140,6 @@ class Nag(NagDefinition):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
     name = ''
-    __servicegroups = [None, None]
     
     @property
     def lastupdated(self):
@@ -150,47 +156,44 @@ class Nag(NagDefinition):
         else:
             return lastchange
     
+    @cache.cache(expire=3600)
     def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
-            if self.__servicegroups[0] is None:
-                self.__servicegroups[0] = NagList([x for x in self._servicegroups if x.servicegroup_name in self.importantservicegroups])
-            servicegroups = self.__servicegroups[0]
+            servicegroups = NagList([x for x in self._servicegroups if x.servicegroup_name in self.importantservicegroups])
         else:
-            if self.__servicegroups[1] is None:
-                servicegroups = self._servicegroups
+            servicegroups = self._servicegroups
+            
+            '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
+            noservicegroup = Nag.ServiceGroup()
+            noservicegroup.alias = 'No Service Group'
+            noservicegroup.nag = self.nag
+            noservicegroup.servicegroup_name = 'noservicegroup'
+            noservicegroup.members = ''
+            
+            servicesinservicegroup = []
+            for servicegroup in self._servicegroups:
+                servicesinservicegroup.extend(servicegroup.services)
+            
+            for services in list(set(self.services) - set(servicesinservicegroup)):
+                noservicegroup.members = noservicegroup.members + services.host.host_name + ',' + services.name + ','
                 
-                '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
-                noservicegroup = Nag.ServiceGroup()
-                noservicegroup.alias = 'No Service Group'
-                noservicegroup.nag = self.nag
-                noservicegroup.servicegroup_name = 'noservicegroup'
-                noservicegroup.members = ''
+            noservicegroup.members = noservicegroup.members.strip(',')
+            servicegroups.append(noservicegroup)
+            
+            '''Build "allservices" sudo servicegroup'''
+            allservicesservicegroup = Nag.ServiceGroup()
+            allservicesservicegroup.alias = 'All Services'
+            allservicesservicegroup.nag = self.nag
+            allservicesservicegroup.servicegroup_name = 'allservices'
+            allservicesservicegroup.members = ''
+            
+            for services in self.services:
+                allservicesservicegroup.members = allservicesservicegroup.members + services.host.host_name + ',' + services.name + ','
                 
-                servicesinservicegroup = []
-                for servicegroup in self._servicegroups:
-                    servicesinservicegroup.extend(servicegroup.services)
-                
-                for services in list(set(self.services) - set(servicesinservicegroup)):
-                    noservicegroup.members = noservicegroup.members + services.host.host_name + ',' + services.name + ','
-                    
-                noservicegroup.members = noservicegroup.members.strip(',')
-                servicegroups.append(noservicegroup)
-                
-                '''Build "allservices" sudo servicegroup'''
-                allservicesservicegroup = Nag.ServiceGroup()
-                allservicesservicegroup.alias = 'All Services'
-                allservicesservicegroup.nag = self.nag
-                allservicesservicegroup.servicegroup_name = 'allservices'
-                allservicesservicegroup.members = ''
-                
-                for services in self.services:
-                    allservicesservicegroup.members = allservicesservicegroup.members + services.host.host_name + ',' + services.name + ','
-                    
-                allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
-                servicegroups.append(allservicesservicegroup)
-                
-                self.__servicegroups[1] = NagList(servicegroups)
-            servicegroups = self.__servicegroups[1]
+            allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
+            servicegroups.append(allservicesservicegroup)
+            
+            servicegroups = NagList(servicegroups)
                 
         return servicegroups
     
