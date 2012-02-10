@@ -133,6 +133,7 @@ class Nag(NagDefinition):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
     name = ''
+    __servicegroups = [None, None]
     
     @property
     def lastupdated(self):
@@ -151,41 +152,45 @@ class Nag(NagDefinition):
     
     def getservicegroups(self, onlyimportant = False):
         if onlyimportant:
-            servicegroups = NagList([x for x in self._servicegroups if x.servicegroup_name in self.importantservicegroups])
+            if self.__servicegroups[0] is None:
+                self.__servicegroups[0] = NagList([x for x in self._servicegroups if x.servicegroup_name in self.importantservicegroups])
+            servicegroups = self.__servicegroups[0]
         else:
-            servicegroups = self._servicegroups
-            
-            '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
-            noservicegroup = Nag.ServiceGroup()
-            noservicegroup.alias = 'No Service Group'
-            noservicegroup.nag = self.nag
-            noservicegroup.servicegroup_name = 'noservicegroup'
-            noservicegroup.members = ''
-            
-            servicesinservicegroup = []
-            for servicegroup in self._servicegroups:
-                servicesinservicegroup.extend(servicegroup.services)
-            
-            for services in list(set(self.services) - set(servicesinservicegroup)):
-                noservicegroup.members = noservicegroup.members + services.host.host_name + ',' + services.name + ','
+            if self.__servicegroups[1] is None:
+                servicegroups = self._servicegroups
                 
-            noservicegroup.members = noservicegroup.members.strip(',')
-            servicegroups.append(noservicegroup)
-            
-            '''Build "allservices" sudo servicegroup'''
-            allservicesservicegroup = Nag.ServiceGroup()
-            allservicesservicegroup.alias = 'All Services'
-            allservicesservicegroup.nag = self.nag
-            allservicesservicegroup.servicegroup_name = 'allservices'
-            allservicesservicegroup.members = ''
-            
-            for services in self.services:
-                allservicesservicegroup.members = allservicesservicegroup.members + services.host.host_name + ',' + services.name + ','
+                '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
+                noservicegroup = Nag.ServiceGroup()
+                noservicegroup.alias = 'No Service Group'
+                noservicegroup.nag = self.nag
+                noservicegroup.servicegroup_name = 'noservicegroup'
+                noservicegroup.members = ''
                 
-            allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
-            servicegroups.append(allservicesservicegroup)
-            
-            servicegroups = NagList(servicegroups)
+                servicesinservicegroup = []
+                for servicegroup in self._servicegroups:
+                    servicesinservicegroup.extend(servicegroup.services)
+                
+                for services in list(set(self.services) - set(servicesinservicegroup)):
+                    noservicegroup.members = noservicegroup.members + services.host.host_name + ',' + services.name + ','
+                    
+                noservicegroup.members = noservicegroup.members.strip(',')
+                servicegroups.append(noservicegroup)
+                
+                '''Build "allservices" sudo servicegroup'''
+                allservicesservicegroup = Nag.ServiceGroup()
+                allservicesservicegroup.alias = 'All Services'
+                allservicesservicegroup.nag = self.nag
+                allservicesservicegroup.servicegroup_name = 'allservices'
+                allservicesservicegroup.members = ''
+                
+                for services in self.services:
+                    allservicesservicegroup.members = allservicesservicegroup.members + services.host.host_name + ',' + services.name + ','
+                    
+                allservicesservicegroup.members = allservicesservicegroup.members.strip(',')
+                servicegroups.append(allservicesservicegroup)
+                
+                self.__servicegroups[1] = NagList(servicegroups)
+            servicegroups = self.__servicegroups[1]
                 
         return servicegroups
     
@@ -237,15 +242,14 @@ class Nag(NagDefinition):
         
         @property
         def status(self):
+            isdowntime = False
+            if int(self.scheduled_downtime_depth) > 0: isdowntime = True
+            if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and 
+                self.active_checks_enabled == '1' and 
+                self.nag.config.IGNORE_STALE_DATA == False):
+                self.__status = 'stale', isdowntime
             if self.__status is None:
-                isdowntime = False
-                if int(self.scheduled_downtime_depth) > 0: isdowntime = True
-                
-                if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and 
-                    self.active_checks_enabled == '1' and 
-                    self.nag.config.IGNORE_STALE_DATA == False):
-                    self.__status = 'stale', isdowntime
-                elif int(self.current_state) == 2:
+                if int(self.current_state) == 2:
                     self.__status = 'critical', isdowntime
                 elif int(self.current_state) == 1:
                     self.__status = 'warning', isdowntime
@@ -317,10 +321,10 @@ class Nag(NagDefinition):
 
         @property
         def status(self):
+            if len([x for x in self.services if x.status[0] == 'stale']):
+                self.__status = 'unknown'
+                    
             if self.__status is None:
-                if len([x for x in self.services if x.status[0] == 'stale']):
-                    self.__status = 'unknown'
-
                 if len([x for x in self.services if int(x.current_state) == 2 and int(x.scheduled_downtime_depth) == 0]):
                     self.__status = 'critical'
 
