@@ -1,10 +1,11 @@
-from distutils.core import setup
+from setuptools import setup
+
 import sys
 
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 11
+VERSION_PATCH = 12
 
 
 
@@ -16,12 +17,16 @@ versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 #elif sys.version_info[0] == 3:
 #    base_dir = 'python3'
 
+requires=['beaker']
+
 setup(
     name='NagParser',
     version=versionstr,
     author='Matt Kennedy & Zeb Palmer',
     author_email='zeb@zebpalmer.com',
     packages=['nagparser', 'nagparser.test'],
+    install_requires=requires,
+    tests_require=requires,
     package_dir={
         'nagparser':  "nagparser"},
     #scripts=[ "bin/script.py"]
