@@ -19,7 +19,6 @@ cache_opts = {
     'cache.short_term.expire': '5'
 }
 
-cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
@@ -28,6 +27,7 @@ class NagDefinition(object):
     def __init__(self, nag = None):
         if nag == None:
             self.nag = self
+            self.cache = CacheManager(**parse_cache_config_options(cache_opts))
             self._nagcreated=datetime.now()
         else:
             self.nag = nag
@@ -162,7 +162,7 @@ class Nag(NagDefinition):
             return lastchange
     
     def getservicegroups(self, onlyimportant = False):
-        @cache.region('short_term')
+        @self.nag.cache.region('short_term')
         def _getservicegroups(onlyimportant = onlyimportant):
             
             if onlyimportant:
@@ -289,7 +289,7 @@ class Nag(NagDefinition):
         '''ServiceGroup represents a service group definition found in objects.cache.'''
         
         def gethostsandservices(self):
-            @cache.region('short_term', '_gethostsandservices{0}'.format(self.servicegroup_name))
+            @self.nag.cache.region('short_term', '_gethostsandservices{0}'.format(self.servicegroup_name))
             def _gethostsandservices():
                 tempservices = []
                 temphosts = []
