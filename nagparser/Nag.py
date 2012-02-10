@@ -15,8 +15,7 @@ from beaker.util import parse_cache_config_options
 cache_opts = {
     'cache.type': 'memory',
     'cache.regions': 'short_term',
-    'cache.enabled': True,
-    'cache.short_term.expire': '5'
+    'cache.enabled': True
 }
 
 class NagDefinition(object):
@@ -235,7 +234,7 @@ class Nag(NagDefinition):
 
         @property
         def host(self):
-            #@cache.region('short_term', '_getservicehost{0}'.format(self.name))
+            #@self.nag.cache.region('short_term', '_getservicehost{0}'.format(self.name))
             def _getservicehost():
                 return NagList([x for x in self.nag.hosts if x.host_name == self.host_name]).first
         
@@ -253,7 +252,7 @@ class Nag(NagDefinition):
                 self.nag.config.IGNORE_STALE_DATA == False):
                 return 'stale', isdowntime
             
-            #@cache.region('short_term', '_getservicestatus{0}'.format(self.name))
+            #@self.nag.cache.region('short_term', '_getservicestatus{0}'.format(self.name))
             def _getservicestatus():
                 if int(self.current_state) == 2:
                     return 'critical', isdowntime
@@ -323,7 +322,7 @@ class Nag(NagDefinition):
             if len([x for x in self.services if x.status[0] == 'stale']):
                  return 'unknown'
             
-            #@cache.region('short_term', '_getservicegroupstatus{0}'.format(self.servicegroup_name))
+            #@self.nag.cache.region('short_term', '_getservicegroupstatus{0}'.format(self.servicegroup_name))
             def _getservicegroupstatus():
                 if len([x for x in self.services if int(x.current_state) == 2 and int(x.scheduled_downtime_depth) == 0]):
                      return 'critical'
