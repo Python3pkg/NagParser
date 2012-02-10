@@ -15,9 +15,10 @@ from beaker.util import parse_cache_config_options
 cache_opts = {
     'cache.type': 'memory',
     'cache.regions': 'short_term',
-    'cache.enabled': True
+    'cache.enabled': True,
+    'cache.short_term.expiration': '10'
 }
-
+cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
@@ -26,7 +27,6 @@ class NagDefinition(object):
     def __init__(self, nag = None):
         if nag == None:
             self.nag = self
-            self.cache = CacheManager(**parse_cache_config_options(cache_opts))
             self._nagcreated=datetime.now()
         else:
             self.nag = nag
@@ -161,7 +161,7 @@ class Nag(NagDefinition):
             return lastchange
     
     def getservicegroups(self, onlyimportant = False):
-        @self.nag.cache.region('short_term')
+        @cache.region('short_term', '_getservicegroups{0}'.format(self._nagcreated))
         def _getservicegroups(onlyimportant = onlyimportant):
             
             if onlyimportant:
@@ -234,7 +234,7 @@ class Nag(NagDefinition):
 
         @property
         def host(self):
-            #@self.nag.cache.region('short_term', '_getservicehost{0}'.format(self.name))
+            #@cache.region('short_term', '_getservicehost{0}'.format(self.name))
             def _getservicehost():
                 return NagList([x for x in self.nag.hosts if x.host_name == self.host_name]).first
         
@@ -252,7 +252,7 @@ class Nag(NagDefinition):
                 self.nag.config.IGNORE_STALE_DATA == False):
                 return 'stale', isdowntime
             
-            #@self.nag.cache.region('short_term', '_getservicestatus{0}'.format(self.name))
+            #@cache.region('short_term', '_getservicestatus{0}'.format(self.name))
             def _getservicestatus():
                 if int(self.current_state) == 2:
                     return 'critical', isdowntime
@@ -288,7 +288,7 @@ class Nag(NagDefinition):
         '''ServiceGroup represents a service group definition found in objects.cache.'''
         
         def gethostsandservices(self):
-            @self.nag.cache.region('short_term', '_gethostsandservices{0}'.format(self.servicegroup_name))
+            @cache.region('short_term', '_gethostsandservices{0}'.format(self.servicegroup_name))
             def _gethostsandservices():
                 tempservices = []
                 temphosts = []
@@ -322,7 +322,7 @@ class Nag(NagDefinition):
             if len([x for x in self.services if x.status[0] == 'stale']):
                  return 'unknown'
             
-            #@self.nag.cache.region('short_term', '_getservicegroupstatus{0}'.format(self.servicegroup_name))
+            #@cache.region('short_term', '_getservicegroupstatus{0}'.format(self.servicegroup_name))
             def _getservicegroupstatus():
                 if len([x for x in self.services if int(x.current_state) == 2 and int(x.scheduled_downtime_depth) == 0]):
                      return 'critical'
