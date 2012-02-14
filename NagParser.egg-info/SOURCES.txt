@@ -19,3 +19,5 @@ nagparser/factory.py
 nagparser/nicetime.py
 nagparser/test/__init__.py
 nagparser/test/test_nag_parser.py
+nagparser/test/data/test_objects.cache
+nagparser/test/data/test_status.dat
