@@ -1,4 +1,4 @@
-from setuptools import setup
+from distutils.core import setup
 
 import sys
 
@@ -27,7 +27,7 @@ setup(
     packages=['nagparser', 'nagparser.test'],
     install_requires=requires,
     tests_require=requires,
-     package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
+    package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
     include_package_data=True,
     package_dir={
         'nagparser':  "nagparser"},

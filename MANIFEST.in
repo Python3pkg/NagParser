@@ -1,6 +1,6 @@
 include *.txt
 include *.rst
-recursive-include nagparser/test/data *.cache
-recursive-include nagparser/test/data *.dat
+include nagparser/test/data/*.cache
+include nagparser/test/data/*.dat
 recursive-include docs *.txt
 recursive-include docs *.rst
