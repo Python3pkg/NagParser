@@ -27,6 +27,8 @@ setup(
     packages=['nagparser', 'nagparser.test'],
     install_requires=requires,
     tests_require=requires,
+     package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
+    include_package_data=True,
     package_dir={
         'nagparser':  "nagparser"},
     #scripts=[ "bin/script.py"]
