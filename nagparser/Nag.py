@@ -254,6 +254,8 @@ class Nag(NagDefinition):
             
             #@cache.region('short_term', '_getservicestatus{0}{1}'.format(self.name,self.nag._nagcreated))
             def _getservicestatus():
+                if self.nag.config.REQUIRE_HARD_SERVICE_STATUS and int(self.state_type) != 1:
+                    return 'ok', isdowntime
                 if int(self.current_state) == 2:
                     return 'critical', isdowntime
                 elif int(self.current_state) == 1:
@@ -324,13 +326,13 @@ class Nag(NagDefinition):
             
             #@cache.region('short_term', '_getservicegroupstatus{0}{1}'.format(self.servicegroup_name, self.nag._nagcreated))
             def _getservicegroupstatus():
-                if len([x for x in self.services if int(x.current_state) == 2 and int(x.scheduled_downtime_depth) == 0]):
+                if len([x for x in self.services if x.status[0] == 'critical' and x.status[1] == False]):
                      return 'critical'
 
-                elif len([x for x in self.services if int(x.current_state) == 1 and int(x.scheduled_downtime_depth) == 0]):
+                elif len([x for x in self.services if x.status[0] == 'warning' and x.status[1] == False]):
                      return 'warning'
 
-                elif len([x for x in self.services if int(x.scheduled_downtime_depth) > 0 and int(x.current_state) != 0]):
+                elif len([x for x in self.services if x.status[0] == 'ok' and x.status[1] == True]):
                      return 'downtime'
 
                 elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
