@@ -8,6 +8,7 @@ class NagConfig(object):
     IMPORTANTSERVICEGROUPS = {}
     basicAPIKEYS = []
     DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+    REQUIRE_HARD_SERVICE_STATUS = False
     
     def __init__(self, files):
         allfilesexist = True
