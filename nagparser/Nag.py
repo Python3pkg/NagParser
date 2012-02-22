@@ -14,10 +14,11 @@ from beaker.util import parse_cache_config_options
 
 cache_opts = {
     'cache.type': 'memory',
-    'cache.regions': 'short_term',
+    'cache.regions': ['short_term'],
     'cache.enabled': True,
     'cache.short_term.expire': '15'
 }
+
 cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
@@ -30,6 +31,8 @@ class NagDefinition(object):
             self._nagcreated=datetime.now()
         else:
             self.nag = nag
+            
+        self.invalidate = True
             
     @property
     def commands(self):
@@ -143,6 +146,9 @@ class NagDefinition(object):
 class Nag(NagDefinition):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
+    def __init__(self, nag = None):
+        super(Nag, self).__init__(nag = nag)
+
     name = ''
     
     @property
@@ -161,7 +167,8 @@ class Nag(NagDefinition):
             return lastchange
     
     def getservicegroups(self, onlyimportant = False):
-        @cache.region('short_term', '_getservicegroups{0}'.format(self.nag._nagcreated))
+            
+        @cache.region('short_term')
         def _getservicegroups(onlyimportant = onlyimportant):
             
             if onlyimportant:
@@ -170,7 +177,7 @@ class Nag(NagDefinition):
                 servicegroups = self._servicegroups
                 
                 '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
-                noservicegroup = Nag.ServiceGroup()
+                noservicegroup = Nag.ServiceGroup(self.nag)
                 noservicegroup.alias = 'No Service Group'
                 noservicegroup.nag = self.nag
                 noservicegroup.servicegroup_name = 'noservicegroup'
@@ -187,7 +194,7 @@ class Nag(NagDefinition):
                 servicegroups.append(noservicegroup)
                 
                 '''Build "allservices" sudo servicegroup'''
-                allservicesservicegroup = Nag.ServiceGroup()
+                allservicesservicegroup = Nag.ServiceGroup(self.nag)
                 allservicesservicegroup.alias = 'All Services'
                 allservicesservicegroup.nag = self.nag
                 allservicesservicegroup.servicegroup_name = 'allservices'
@@ -202,7 +209,11 @@ class Nag(NagDefinition):
                 servicegroups = NagList(servicegroups)
                     
             return servicegroups
-    
+        
+        if self.invalidate:
+            cache.region_invalidate(_getservicegroups, None)
+            self.invalidate = False
+            
         return _getservicegroups(onlyimportant)
     
     @property
@@ -211,6 +222,9 @@ class Nag(NagDefinition):
     
     class Host(NagDefinition):
         '''Host represents a host definition found in status.dat.'''
+
+        def __init__(self, nag):
+            super(Nag.Host, self).__init__(nag = nag)
 
         @property
         def services(self):
@@ -231,14 +245,14 @@ class Nag(NagDefinition):
         
     class Service(NagDefinition):        
         '''Service represents a service definition found in status.dat'''
-
+        
+        def __init__(self, nag):
+            super(Nag.Service, self).__init__(nag = nag)
+            
         @property
         def host(self):
-            #@cache.region('short_term', '_getservicehost{0}{1}'.format(self.name, self.nag._nagcreated))
-            def _getservicehost():
-                return NagList([x for x in self.nag.hosts if x.host_name == self.host_name]).first
-        
-            return _getservicehost()
+            return NagList([x for x in self.nag.hosts if x.host_name == self.host_name]).first
+
         @property
         def name(self):
             return self.service_description
@@ -251,21 +265,17 @@ class Nag(NagDefinition):
                 self.active_checks_enabled == '1' and 
                 self.nag.config.IGNORE_STALE_DATA == False):
                 return 'stale', isdowntime
-            
-            #@cache.region('short_term', '_getservicestatus{0}{1}'.format(self.name,self.nag._nagcreated))
-            def _getservicestatus():
-                if self.nag.config.REQUIRE_HARD_SERVICE_STATUS and int(self.state_type) != 1:
-                    return 'ok', isdowntime
-                if int(self.current_state) == 2:
-                    return 'critical', isdowntime
-                elif int(self.current_state) == 1:
-                    return 'warning', isdowntime
-                elif int(self.current_state) > 2 or int(self.current_state) < 0:
-                    return 'unknown', isdowntime
-                else:
-                    return 'ok', isdowntime
 
-            return _getservicestatus()
+            if self.nag.config.REQUIRE_HARD_SERVICE_STATUS and int(self.state_type) != 1:
+                return 'ok', isdowntime
+            if int(self.current_state) == 2:
+                return 'critical', isdowntime
+            elif int(self.current_state) == 1:
+                return 'warning', isdowntime
+            elif int(self.current_state) > 2 or int(self.current_state) < 0:
+                return 'unknown', isdowntime
+            else:
+                return 'ok', isdowntime
 
         def laststatuschange(self, returntimesincenow = True, timestamp = None):
             if timestamp:
@@ -289,8 +299,11 @@ class Nag(NagDefinition):
     class ServiceGroup(NagDefinition):
         '''ServiceGroup represents a service group definition found in objects.cache.'''
         
+        def __init__(self, nag):
+            super(Nag.ServiceGroup, self).__init__(nag = nag)
+            
         def gethostsandservices(self):
-            @cache.region('short_term', '_gethostsandservices{0}{1}'.format(self.servicegroup_name, self.nag._nagcreated))
+            @cache.region('short_term', self.servicegroup_name)
             def _gethostsandservices():
                 tempservices = []
                 temphosts = []
@@ -305,6 +318,10 @@ class Nag(NagDefinition):
                             
                 return (tempservices,temphosts)
             
+            if self.invalidate:
+                cache.region_invalidate(_gethostsandservices, None, self.servicegroup_name)
+                self.invalidate = False
+                
             return _gethostsandservices()
         
         @property
@@ -323,24 +340,20 @@ class Nag(NagDefinition):
         def status(self):
             if len([x for x in self.services if x.status[0] == 'stale']):
                  return 'unknown'
-            
-            #@cache.region('short_term', '_getservicegroupstatus{0}{1}'.format(self.servicegroup_name, self.nag._nagcreated))
-            def _getservicegroupstatus():
-                if len([x for x in self.services if x.status[0] == 'critical' and x.status[1] == False]):
-                     return 'critical'
+             
+            if len([x for x in self.services if x.status[0] == 'critical' and x.status[1] == False]):
+                 return 'critical'
 
-                elif len([x for x in self.services if x.status[0] == 'warning' and x.status[1] == False]):
-                     return 'warning'
+            elif len([x for x in self.services if x.status[0] == 'warning' and x.status[1] == False]):
+                 return 'warning'
 
-                elif len([x for x in self.services if x.status[0] == 'ok' and x.status[1] == True]):
-                     return 'downtime'
+            elif len([x for x in self.services if x.status[0] == 'ok' and x.status[1] == True]):
+                 return 'downtime'
 
-                elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
-                     return 'unknown'
-                else:
-                     return 'ok'
-            
-            return _getservicegroupstatus()
+            elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
+                 return 'unknown'
+            else:
+                 return 'ok'
         
         def laststatuschange(self, returntimesincenow = True):
             lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow = False)).laststatuschange(returntimesincenow = False)
