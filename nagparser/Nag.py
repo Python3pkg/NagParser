@@ -14,10 +14,11 @@ from beaker.util import parse_cache_config_options
 
 cache_opts = {
     'cache.type': 'memory',
-    'cache.regions': 'short_term',
-    'cache.enabled': True,
-    'cache.short_term.expire': '15'
+    'cache.regions': ['short_term'],
+    'cache.enabled': True
+#    'cache.short_term.expire': '15'
 }
+
 cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
@@ -143,6 +144,9 @@ class NagDefinition(object):
 class Nag(NagDefinition):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Nag.Host.'''
     
+    def __init__(self, nag = None):
+        super(Nag, self).__init__(nag = nag)
+
     name = ''
     
     @property
@@ -161,6 +165,7 @@ class Nag(NagDefinition):
             return lastchange
     
     def getservicegroups(self, onlyimportant = False):
+        
         @cache.region('short_term', '_getservicegroups{0}'.format(self.nag._nagcreated))
         def _getservicegroups(onlyimportant = onlyimportant):
             
@@ -170,7 +175,7 @@ class Nag(NagDefinition):
                 servicegroups = self._servicegroups
                 
                 '''Build up a servicegroup instance that will have all services NOT in a servicegroup'''
-                noservicegroup = Nag.ServiceGroup()
+                noservicegroup = Nag.ServiceGroup(self.nag)
                 noservicegroup.alias = 'No Service Group'
                 noservicegroup.nag = self.nag
                 noservicegroup.servicegroup_name = 'noservicegroup'
@@ -187,7 +192,7 @@ class Nag(NagDefinition):
                 servicegroups.append(noservicegroup)
                 
                 '''Build "allservices" sudo servicegroup'''
-                allservicesservicegroup = Nag.ServiceGroup()
+                allservicesservicegroup = Nag.ServiceGroup(self.nag)
                 allservicesservicegroup.alias = 'All Services'
                 allservicesservicegroup.nag = self.nag
                 allservicesservicegroup.servicegroup_name = 'allservices'
@@ -212,6 +217,9 @@ class Nag(NagDefinition):
     class Host(NagDefinition):
         '''Host represents a host definition found in status.dat.'''
 
+        def __init__(self, nag):
+            super(Nag.Host, self).__init__(nag = nag)
+
         @property
         def services(self):
             return NagList([x for x in self.nag.services if x.host_name == self.host_name])
@@ -231,7 +239,10 @@ class Nag(NagDefinition):
         
     class Service(NagDefinition):        
         '''Service represents a service definition found in status.dat'''
-
+        
+        def __init__(self, nag):
+            super(Nag.Service, self).__init__(nag = nag)
+            
         @property
         def host(self):
             #@cache.region('short_term', '_getservicehost{0}{1}'.format(self.name, self.nag._nagcreated))
@@ -288,7 +299,10 @@ class Nag(NagDefinition):
         
     class ServiceGroup(NagDefinition):
         '''ServiceGroup represents a service group definition found in objects.cache.'''
-        
+
+        def __init__(self, nag):
+            super(Nag.ServiceGroup, self).__init__(nag = nag)
+            
         def gethostsandservices(self):
             @cache.region('short_term', '_gethostsandservices{0}{1}'.format(self.servicegroup_name, self.nag._nagcreated))
             def _gethostsandservices():
