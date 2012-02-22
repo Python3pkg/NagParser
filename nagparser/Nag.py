@@ -19,7 +19,6 @@ cache_opts = {
     'cache.short_term.expire': '15'
 }
 
-cache = CacheManager(**parse_cache_config_options(cache_opts))
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
@@ -31,8 +30,6 @@ class NagDefinition(object):
             self._nagcreated=datetime.now()
         else:
             self.nag = nag
-            
-        self.invalidate = True
             
     @property
     def commands(self):
@@ -148,7 +145,8 @@ class Nag(NagDefinition):
     
     def __init__(self, nag = None):
         super(Nag, self).__init__(nag = nag)
-
+        self.cache = CacheManager(**parse_cache_config_options(cache_opts))
+        
     name = ''
     
     @property
@@ -168,7 +166,7 @@ class Nag(NagDefinition):
     
     def getservicegroups(self, onlyimportant = False):
             
-        @cache.region('short_term')
+        @self.nag.cache.region('short_term')
         def _getservicegroups(onlyimportant = onlyimportant):
             
             if onlyimportant:
@@ -209,10 +207,6 @@ class Nag(NagDefinition):
                 servicegroups = NagList(servicegroups)
                     
             return servicegroups
-        
-        if self.invalidate:
-            cache.region_invalidate(_getservicegroups, None)
-            self.invalidate = False
             
         return _getservicegroups(onlyimportant)
     
@@ -303,7 +297,7 @@ class Nag(NagDefinition):
             super(Nag.ServiceGroup, self).__init__(nag = nag)
             
         def gethostsandservices(self):
-            @cache.region('short_term', self.servicegroup_name)
+            @self.nag.cache.region('short_term', self.servicegroup_name)
             def _gethostsandservices():
                 tempservices = []
                 temphosts = []
@@ -317,10 +311,6 @@ class Nag(NagDefinition):
                             tempservices.append(host.getservice(members[i+1]))
                             
                 return (tempservices,temphosts)
-            
-            if self.invalidate:
-                cache.region_invalidate(_gethostsandservices, None, self.servicegroup_name)
-                self.invalidate = False
                 
             return _gethostsandservices()
         
