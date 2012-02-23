@@ -5,7 +5,7 @@ import sys
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 16
+VERSION_PATCH = 17
 
 
 
@@ -17,7 +17,7 @@ versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 #elif sys.version_info[0] == 3:
 #    base_dir = 'python3'
 
-requires=['beaker']
+requires=[]
 
 setup(
     name='NagParser',
