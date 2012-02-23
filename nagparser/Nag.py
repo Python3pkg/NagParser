@@ -9,16 +9,6 @@ from NagList import NagList
 from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from inspect import isclass
 
-from beaker.cache import CacheManager
-from beaker.util import parse_cache_config_options
-
-cache_opts = {
-    'cache.type': 'memory',
-    'cache.regions': ['short_term'],
-    'cache.enabled': True,
-    'cache.short_term.expire': '15'
-}
-
 class NagDefinition(object):
     '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''    
     def getnowtimestamp(self):
@@ -145,7 +135,7 @@ class Nag(NagDefinition):
     
     def __init__(self, nag = None):
         super(Nag, self).__init__(nag = nag)
-        self.cache = CacheManager(**parse_cache_config_options(cache_opts))
+        self.__servicegroups = [None, None]
         
     name = ''
     
@@ -165,8 +155,8 @@ class Nag(NagDefinition):
             return lastchange
     
     def getservicegroups(self, onlyimportant = False):
-            
-        @self.nag.cache.region('short_term')
+        
+        #@self.nag.cache.region('short_term')
         def _getservicegroups(onlyimportant = onlyimportant):
             
             if onlyimportant:
@@ -207,9 +197,17 @@ class Nag(NagDefinition):
                 servicegroups = NagList(servicegroups)
                     
             return servicegroups
-            
-        return _getservicegroups(onlyimportant)
-    
+
+        if onlyimportant and self.__servicegroups[0] is None:
+            self.__servicegroups[0] = _getservicegroups(onlyimportant)
+        elif not onlyimportant and self.__servicegroups[1] is None:
+            self.__servicegroups[1] = _getservicegroups(onlyimportant)
+
+        if onlyimportant:
+            return self.__servicegroups[0]
+        else:
+            return self.__servicegroups[1]
+        
     @property
     def servicegroups(self):
         return self.getservicegroups()
@@ -295,9 +293,9 @@ class Nag(NagDefinition):
         
         def __init__(self, nag):
             super(Nag.ServiceGroup, self).__init__(nag = nag)
+            self._hostsandservices = None
             
-        def gethostsandservices(self):
-            @self.nag.cache.region('short_term', self.servicegroup_name)
+        def gethostsandservices(self):            
             def _gethostsandservices():
                 tempservices = []
                 temphosts = []
@@ -311,8 +309,10 @@ class Nag(NagDefinition):
                             tempservices.append(host.getservice(members[i+1]))
                             
                 return (tempservices,temphosts)
+            if self._hostsandservices == None:
+                self._hostsandservices = _gethostsandservices()
                 
-            return _gethostsandservices()
+            return self._hostsandservices
         
         @property
         def services(self):
