@@ -306,7 +306,9 @@ class Nag(NagDefinition):
                             host = self.nag.gethost(members[i])
                             if host is not None:
                                 temphosts.append(host)
-                                tempservices.append(host.getservice(members[i+1]))
+                                service = host.getservice(members[i+1])
+                                if service is not None:
+                                    tempservices.append(service)
                             
                 return (list(set(tempservices)),list(set(temphosts)))
             if self._hostsandservices == None:
