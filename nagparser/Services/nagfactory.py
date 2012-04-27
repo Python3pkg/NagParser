@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import re
-from Nag import Nag
-from NagList import NagList
+from nagparser.Model.Nag import Nag
+from nagparser.Model.NagList import NagList
 
 
 def parse(config):

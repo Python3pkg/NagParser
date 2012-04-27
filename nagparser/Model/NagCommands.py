@@ -1,8 +1,9 @@
 import time
 import os
 
-from nicetime import getdatetimefromnicetime
 from datetime import datetime
+
+from nagparser.Services.nicetime import getdatetimefromnicetime
 
 
 class NagCommands(object):

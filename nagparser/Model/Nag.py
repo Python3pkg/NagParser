@@ -6,7 +6,7 @@ import pprint
 from NagCommands import NagCommands
 from NagList import NagList
 
-from NagParser.Services.nicetime import getnicetimefromdatetime
+from nagparser.Services.nicetime import getnicetimefromdatetime
 
 
 class NagDefinition(object):
