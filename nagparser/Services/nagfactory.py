@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 
 import re
-from nagparser.Model.Nag import Nag
 from nagparser.Model.NagList import NagList
+
+from nagparser.Model import Nag, Host, Service, ServiceGroup
 
 
 def parse(config):
     tempobjs = []
-
     files = config.files
     importantservicegroups = config.IMPORTANTSERVICEGROUPS
 
     nag = None
-
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
@@ -32,13 +31,13 @@ def parse(config):
 
             for sectioncontent in pat.findall(content):
                 if section == 'hoststatus':
-                    temp = Nag.Host(nag)
+                    temp = Host(nag)
                 elif section == 'servicestatus':
-                    temp = Nag.Service(nag)
+                    temp = Service(nag)
                 elif section == 'programstatus':
                     temp = nag
                 elif section == 'define servicegroup':
-                    temp = Nag.ServiceGroup(nag)
+                    temp = ServiceGroup(nag)
 
                 for attr in sectioncontent.splitlines():
                     attr = attr.strip()
@@ -54,9 +53,9 @@ def parse(config):
                         temp.__dict__[shortattr] = attr.replace(shortattr + delim, '')
                 tempobjs.append(temp)
 
-    hosts = [x for x in tempobjs if isinstance(x, Nag.Host)]
-    services = [x for x in tempobjs if isinstance(x, Nag.Service)]
-    servicegroups = [x for x in tempobjs if isinstance(x, Nag.ServiceGroup)]
+    hosts = [x for x in tempobjs if isinstance(x, Host)]
+    services = [x for x in tempobjs if isinstance(x, Service)]
+    servicegroups = [x for x in tempobjs if isinstance(x, ServiceGroup)]
 
     nag.importantservicegroups = importantservicegroups
     nag.config = config
