@@ -1,5 +1,5 @@
 from NagList import NagList
-from NagBase import NagBase
+from Base import Base
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
 
@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 
-class Service(NagBase):
+class Service(Base):
     '''Service represents a service definition found in status.dat'''
 
     def __init__(self, nag):

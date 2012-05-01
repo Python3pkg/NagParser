@@ -1,21 +1,24 @@
 from NagList import NagList
-from NagBase import NagBase
+from Base import Base
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
 
 
-class ServiceGroup(NagBase):
+class ServiceGroup(Base):
     '''ServiceGroup represents a service group definition found in objects.cache.'''
 
     def __init__(self, nag):
         super(ServiceGroup, self).__init__(nag=nag)
+
         self._hostsandservices = None
+        self.members = None
+        self.alias = None
 
     def gethostsandservices(self):
         def _gethostsandservices():
             tempservices = []
             temphosts = []
-            if 'members' in self.__dict__.keys() and self.members != '':
+            if self.members is not None and self.members != '':
                 members = self.members.split(',')
                 for i in range(len(members)):
                     if i % 2 == 0:
@@ -38,7 +41,7 @@ class ServiceGroup(NagBase):
 
     @property
     def hosts(self):
-        return  NagList(self.gethostsandservices()[1])
+        return NagList(self.gethostsandservices()[1])
 
     @property
     def name(self):

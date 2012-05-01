@@ -7,8 +7,8 @@ from datetime import datetime
 import types
 
 
-class NagBase(object):
-    '''This is the base class that all other 'Nag' objects inherit.  This class defines common functions and should not be directly instantiated. '''
+class Base(object):
+    '''This is the base class that other core objects inherit.  This class defines common functions and should not be directly instantiated. '''
     def getnowtimestamp(self):
         return time.time()
 
@@ -30,7 +30,7 @@ class NagBase(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if attrtype is not types.ListType and attrtype is not NagList and not issubclass(attrtype, NagBase):
+            if attrtype is not types.ListType and attrtype is not NagList and not issubclass(attrtype, Base):
                 t = self.__dict__[attr]
                 try:
                     t = int(str(t))
@@ -113,8 +113,6 @@ class NagBase(object):
             return None
 
     def getservicegroup(self, servicegroup_name):
-        #Note: Using NagList to get the object an attribute is not possible because servicegroups set their name attribute
-        # to their alias which is not an identifier of a unique service group (unlike Host and Service which are)
         try:
             return [x for x in self.nag.getservicegroups() if x.__dict__['servicegroup_name'] == servicegroup_name][0]
         except Exception:

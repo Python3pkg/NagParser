@@ -1,5 +1,5 @@
 from NagList import NagList
-from NagBase import NagBase
+from Base import Base
 
 from nagparser.Model import Host, ServiceGroup
 
@@ -8,13 +8,15 @@ from nagparser.Services.nicetime import getnicetimefromdatetime
 from datetime import datetime
 
 
-class Nag(NagBase):
+class Nag(Base):
     '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Host.'''
 
     def __init__(self, nag=None):
         super(Nag, self).__init__(nag=nag)
+
         self.__servicegroups = [None, None]
-        self.last_command_check = 0
+        self._servicegroups = None
+        self.last_command_check = None
 
     name = ''
 

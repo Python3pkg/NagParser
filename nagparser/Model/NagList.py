@@ -18,4 +18,3 @@ class NagList(list):
                 raise AttributeError('Multiple instances found')
 
         raise AttributeError
-

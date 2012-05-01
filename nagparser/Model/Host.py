@@ -1,10 +1,10 @@
-from NagBase import NagBase
+from Base import Base
 from NagList import NagList
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
 
 
-class Host(NagBase):
+class Host(Base):
     '''Host represents a host definition found in status.dat.'''
 
     def __init__(self, nag):
