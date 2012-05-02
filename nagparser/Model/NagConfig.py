@@ -16,11 +16,10 @@ class NagConfig(object):
         for temp in files:
             if not os.path.exists(temp):
                 allfilesexist = False
-                print '{0} does not exist'.format(temp)
 
         if allfilesexist:
             self.files = files
-            self.getpermissions = basicgetpermissions
+            self._set_getpermissionsfunction(basicgetpermissions)
         else:
             raise IOError('File(s) not found')
 
