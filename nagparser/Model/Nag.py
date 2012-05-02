@@ -9,14 +9,19 @@ from datetime import datetime
 
 
 class Nag(Base):
-    '''Top level object that 'holds' all the other objects like Services and Hosts.  The child Nag Objects are defined here so a Host is of type Host.'''
+    '''Top level object that 'holds' all the other objects like Services and Hosts.
+    The child Nag Objects are defined here so a Host is of type Host.
+    '''
 
     def __init__(self, nag=None):
         super(Nag, self).__init__(nag=nag)
 
         self.__servicegroups = [None, None]
+        self.hosts = None
+        self.services = None
         self._servicegroups = None
         self.last_command_check = None
+        self.importantservicegroups = None
 
     name = ''
 
@@ -28,7 +33,8 @@ class Nag(Base):
         return self.getbad(Host)
 
     def laststatuschange(self, returntimesincenow=True):
-        lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)).laststatuschange(returntimesincenow=False)
+        lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \
+                        laststatuschange(returntimesincenow=False)
 
         if returntimesincenow:
             return getnicetimefromdatetime(lastchange)
