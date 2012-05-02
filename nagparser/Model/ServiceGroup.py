@@ -67,7 +67,8 @@ class ServiceGroup(Base):
             return 'ok'
 
     def laststatuschange(self, returntimesincenow=True):
-        lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)).laststatuschange(returntimesincenow=False)
+        lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \
+                        laststatuschange(returntimesincenow=False)
 
         if returntimesincenow:
             return getnicetimefromdatetime(lastchange)
