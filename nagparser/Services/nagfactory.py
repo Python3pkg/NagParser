@@ -50,7 +50,16 @@ def parse(config):
                             delim = '='
 
                         shortattr = attr.split(delim)[0].lower()
-                        temp.__dict__[shortattr] = attr.replace(shortattr + delim, '')
+                        value = attr.replace(shortattr + delim, '')
+                        try:
+                            value = int(str(value))
+                        except ValueError:
+                            try:
+                                value = float(str(value))
+                            except ValueError:
+                                pass
+
+                        temp.__dict__[shortattr] = value
                 tempobjs.append(temp)
 
     hosts = [x for x in tempobjs if isinstance(x, Host)]

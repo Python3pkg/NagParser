@@ -31,16 +31,7 @@ class Base(object):
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
             if attrtype is not types.ListType and attrtype is not NagList and not issubclass(attrtype, Base):
-                t = self.__dict__[attr]
-                try:
-                    t = int(str(t))
-                except ValueError:
-                    try:
-                        t = float(str(t))
-                    except ValueError:
-                        pass
-
-                output.append((attr, t))
+                output.append((attr, self.__dict__[attr]))
 
         return output
 
