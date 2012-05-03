@@ -32,11 +32,12 @@ class Service(Base):
 
     @property
     def status(self):
+
         isdowntime = False
         if int(self.scheduled_downtime_depth) > 0:
             isdowntime = True
         if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and
-            self.active_checks_enabled == '1' and
+            self.active_checks_enabled == 1 and
             self.nag.config.IGNORE_STALE_DATA == False):
             return 'stale', isdowntime
 
