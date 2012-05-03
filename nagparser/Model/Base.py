@@ -83,7 +83,7 @@ class Base(object):
                     items = []
 
         for obj in items:
-            temp = obj.genoutput(outputformat=outputformat, finaloutput=False)
+            temp = obj.genoutput(outputformat=outputformat)
             if outputformat == 'json':
                 if obj.classname() + 's' not in output.keys():
                     output[obj.classname() + 's'] = []
