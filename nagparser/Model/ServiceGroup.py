@@ -1,5 +1,5 @@
 from NagList import NagList
-from Base import Base
+from Base import Base, servicesstatus
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
 
@@ -49,22 +49,7 @@ class ServiceGroup(Base):
 
     @property
     def status(self):
-        if len([x for x in self.services if x.status[0] == 'stale']):
-            return 'unknown'
-
-        if len([x for x in self.services if x.status[0] == 'critical' and x.status[1] == False]):
-            return 'critical'
-
-        elif len([x for x in self.services if x.status[0] == 'warning' and x.status[1] == False]):
-            return 'warning'
-
-        elif len([x for x in self.services if x.status[0] == 'ok' and x.status[1] == True]):
-            return 'downtime'
-
-        elif len([x for x in self.services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
-            return 'unknown'
-        else:
-            return 'ok'
+        return servicesstatus(self.services)
 
     def laststatuschange(self, returntimesincenow=True):
         lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \

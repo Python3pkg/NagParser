@@ -1,4 +1,4 @@
-from Base import Base
+from Base import Base, servicesstatus
 from NagList import NagList
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
@@ -18,6 +18,10 @@ class Host(Base):
     @property
     def name(self):
         return self.host_name
+
+    @property
+    def status(self):
+        return servicesstatus(self.services)
 
     def laststatuschange(self, returntimesincenow=True):
         lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \

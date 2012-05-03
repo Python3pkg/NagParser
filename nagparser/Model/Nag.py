@@ -1,5 +1,5 @@
 from NagList import NagList
-from Base import Base
+from Base import Base, servicesstatus
 
 from nagparser.Model import Host, ServiceGroup
 
@@ -28,6 +28,10 @@ class Nag(Base):
     @property
     def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
+
+    @property
+    def status(self, onlyimportant=False):
+        return servicesstatus(self.getservicegroups(onlyimportant))
 
     def getbadhosts(self):
         return self.getbad(Host)

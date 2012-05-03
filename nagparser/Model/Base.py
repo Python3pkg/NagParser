@@ -1,5 +1,6 @@
 from NagCommands import NagCommands
 from NagList import NagList
+from NagConfig import NagConfig
 
 import time
 from datetime import datetime
@@ -30,14 +31,15 @@ class Base(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if attrtype is not types.ListType and attrtype is not NagList and not issubclass(attrtype, Base):
+            if attrtype is not types.ListType and attrtype is not NagList and attrtype is not NagConfig \
+                and attrtype is not tuple and not issubclass(attrtype, Base) and not attr == '_nagcreated':
                 output.append((attr, self.__dict__[attr]))
 
         return output
 
     def getbad(self, objtype, items=None):
         if items == None:
-            return NagList([x for x in getattr(self, self.classname(objtype) + 's') if int(x.__dict__['current_state']) > 0])
+            items = getattr(self, self.classname(objtype) + 's')
         else:
             return NagList([x for x in items if int(x.__dict__['current_state']) > 0])
 
@@ -108,3 +110,23 @@ class Base(object):
             return [x for x in self.nag.getservicegroups() if x.__dict__['servicegroup_name'] == servicegroup_name][0]
         except Exception:
             return None
+
+
+def servicesstatus(services):
+    hasdowntime = max([x.status[1] for x in services])
+    if len([x for x in services if x.status[0] == 'stale']):
+        return 'unknown', hasdowntime
+
+    if len([x for x in services if x.status[0] == 'critical' and x.status[1] == False]):
+        return 'critical', hasdowntime
+
+    elif len([x for x in services if x.status[0] == 'warning' and x.status[1] == False]):
+        return 'warning', hasdowntime
+
+    elif len([x for x in services if x.status[0] == 'ok' and x.status[1] == True]):
+        return 'downtime', hasdowntime
+
+    elif len([x for x in services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
+        return 'unknown', hasdowntime
+    else:
+        return 'ok', hasdowntime
