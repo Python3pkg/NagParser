@@ -7,6 +7,8 @@ from datetime import datetime
 
 import types
 
+import json
+
 
 class Base(object):
     '''This is the base class that other core objects inherit.  This class defines common functions and should not be directly instantiated. '''
@@ -37,14 +39,17 @@ class Base(object):
 
         return output
 
-    def getbad(self, objtype, items=None):
+    def getbad(self, objtype=None, items=None):
+        if objtype is None and items is None:
+            raise Exception("objtype or items must be passed")
+
         if items == None:
             items = getattr(self, self.classname(objtype) + 's')
         else:
-            return NagList([x for x in items if int(x.__dict__['current_state']) > 0])
+            return NagList([x for x in items if x.status[0] != 'ok'])
 
     def getbadservices(self):
-        return NagList([x for x in self.services if x.status[0] != 'ok'])
+        return self.getbad(items=self.services)
 
     def classname(self, classname=None):
         if classname:
@@ -55,7 +60,7 @@ class Base(object):
         parts = str(classbase).split("'")[1].lower().split('.')
         return parts[len(parts) - 1]
 
-    def genoutput(self, outputformat='json', items=None):
+    def genoutput(self, outputformat='json', items=None, finaloutput=True):
         outputformat = outputformat.lower()
 
         #Setup
@@ -68,11 +73,7 @@ class Base(object):
 
         #Attributes
         for attr in self.attributes:
-            if outputformat == 'json':
-                if attr[1] is None:
-                    output['attributes'][attr[0]] = 'none'
-                else:
-                    output['attributes'][attr[0]] = attr[1]
+            output['attributes'][attr[0]] = attr[1]
 
         order = ['host', 'service', 'servicegroup']
         if items is None:
@@ -85,11 +86,14 @@ class Base(object):
                     items = []
 
         for obj in items:
-            temp = obj.genoutput(outputformat=outputformat)
+            temp = obj.genoutput(outputformat=outputformat, finaloutput=False)
             if outputformat == 'json':
                 if obj.classname() + 's' not in output.keys():
                     output[obj.classname() + 's'] = []
                 output[obj.classname() + 's'].append(temp)
+
+        if outputformat == 'json' and finaloutput:
+            output = json.dumps(output)
 
         return output
 
