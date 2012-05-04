@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import re
-from nagparser.Model.NagList import NagList
 
+from nagparser.Model.NagList import NagList
 from nagparser.Model import Nag, Host, Service, ServiceGroup
 
 
