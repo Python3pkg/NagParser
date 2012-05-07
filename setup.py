@@ -5,11 +5,11 @@ import sys
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 19
+VERSION_PATCH = 20
 
 
 
-versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+versionstr = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
 # only supporting python2.x at the moment, will support 3.x once the project matures a bit
 #if sys.version_info[0] == 2:
@@ -17,7 +17,7 @@ versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 #elif sys.version_info[0] == 3:
 #    base_dir = 'python3'
 
-requires=[]
+requires = []
 
 setup(
     name='NagParser',
