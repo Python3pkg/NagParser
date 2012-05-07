@@ -24,7 +24,7 @@ setup(
     version=versionstr,
     author='Matt Kennedy & Zeb Palmer',
     author_email='zeb@zebpalmer.com',
-    packages=['nagparser', 'nagparser.test'],
+    packages=['nagparser', 'nagparser.Tests'],
     install_requires=requires,
     tests_require=requires,
     package_data={'nagparser.Tests': ['Tests/testdata/*.cache', 'Tests/testdata/*.dat']},
