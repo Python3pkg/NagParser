@@ -27,7 +27,7 @@ setup(
     packages=['nagparser', 'nagparser.test'],
     install_requires=requires,
     tests_require=requires,
-    package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
+    package_data={'nagparser.Tests': ['Tests/testdata/*.cache', 'Tests/testdata/*.dat']},
     include_package_data=True,
     package_dir={
         'nagparser':  "nagparser"},
