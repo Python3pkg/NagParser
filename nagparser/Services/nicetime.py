@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from string import find
 
-def getnicetimefromdatetime(datetimeinput, basedatetime = None):
+
+def getnicetimefromdatetime(datetimeinput, basedatetime=None):
     if basedatetime is None:
         base = datetime.now()
     else:
@@ -25,7 +26,8 @@ def getnicetimefromdatetime(datetimeinput, basedatetime = None):
 
     return result
 
-def getdatetimefromnicetime(nicetime, basedatetime = None):
+
+def getdatetimefromnicetime(nicetime, basedatetime=None):
     if basedatetime is None:
         base = datetime.now()
     else:
@@ -49,9 +51,6 @@ def getdatetimefromnicetime(nicetime, basedatetime = None):
     delta = timedelta(days=result[0], hours=result[1], minutes=result[2], seconds=result[3])
 
     return base + delta
-
-
-
 
 if __name__ == "__main__":
     pass
