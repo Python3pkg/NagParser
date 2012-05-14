@@ -5,7 +5,7 @@ import sys
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 20
+VERSION_PATCH = 21
 
 
 
@@ -24,10 +24,10 @@ setup(
     version=versionstr,
     author='Matt Kennedy & Zeb Palmer',
     author_email='zeb@zebpalmer.com',
-    packages=['nagparser', 'nagparser.Tests'],
+    packages=['nagparser'],
     install_requires=requires,
     tests_require=requires,
-    package_data={'nagparser.Tests': ['Tests/testdata/*.cache', 'Tests/testdata/*.dat']},
+    package_data={},
     include_package_data=True,
     package_dir={
         'nagparser':  "nagparser"},
