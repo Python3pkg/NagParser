@@ -27,7 +27,7 @@ setup(
     packages=['nagparser'],
     install_requires=requires,
     tests_require=requires,
-    package_data={},
+    package_data={'nagparser'},
     include_package_data=True,
     package_dir={
         'nagparser':  "nagparser"},
