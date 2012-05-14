@@ -1,6 +1,8 @@
 include *.txt
 include *.rst
-include nagparser/test/data/*.cache
-include nagparser/test/data/*.dat
+recursive-include nagparser *.py
+recursive-include nagparser *.pickle
+recursive-include nagparser *.cache
+recursive-include nagparser *.dat
 recursive-include docs *.txt
 recursive-include docs *.rst
