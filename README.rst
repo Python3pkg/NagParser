@@ -1,5 +1,3 @@
-.. image:: http://ci.hznet.us/job/NagParserMaster/badge/icon
-
 NagPasrser
 ****************
 
