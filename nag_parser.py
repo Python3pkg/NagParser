@@ -23,7 +23,9 @@ nag = nagparser.parse(config)
 
 #Do something interesting
 
-print nag.services.first
+servicegroupstatuses = [x.status for x in nag.getservicegroups(onlyimportant = False)]
+for status in list(set(servicegroupstatuses)):
+    print servicegroupstatuses.count(status)
 
 
 #json = nag.genoutput('json', prittyprint = False)

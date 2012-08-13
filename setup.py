@@ -1,15 +1,9 @@
 from distutils.core import setup
 
-import sys
-
-
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 19
-
-
-
-versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+VERSION_PATCH = 24
+versionstr = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
 # only supporting python2.x at the moment, will support 3.x once the project matures a bit
 #if sys.version_info[0] == 2:
@@ -17,20 +11,12 @@ versionstr  = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 #elif sys.version_info[0] == 3:
 #    base_dir = 'python3'
 
-requires=[]
-
 setup(
     name='NagParser',
     version=versionstr,
     author='Matt Kennedy & Zeb Palmer',
     author_email='zeb@zebpalmer.com',
-    packages=['nagparser', 'nagparser.test'],
-    install_requires=requires,
-    tests_require=requires,
-    package_data={'nagparser.test': ['data/*.cache', 'data/*.dat']},
-    include_package_data=True,
-    package_dir={
-        'nagparser':  "nagparser"},
+    packages=['nagparser', 'nagparser.Client', 'nagparser.Model', 'nagparser.Services', 'nagparser.Tests'],
     #scripts=[ "bin/script.py"]
     url='http://github.com/zebpalmer/NagiosParser',
     license='GPLv3',
@@ -54,5 +40,3 @@ setup(
               'Topic :: Utilities'
               ],
 )
-
-

@@ -1,14 +1,16 @@
 import time
 import os
 
-from nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 from datetime import datetime
+
+from nagparser.Services.nicetime import getdatetimefromnicetime
+
 
 class NagCommands(object):
     def __init__(self, nag):
         self.nag = nag
-        
-    def scheduledowntime(self, author, starttime, endtime, comment, apikey = 'default', doappend = False):
+
+    def scheduledowntime(self, author, starttime, endtime, comment, apikey='default', doappend=False):
         TIMEFORMAT = '%Y%m%d%H%M'
         try:
             start = int(time.mktime(time.strptime(starttime, TIMEFORMAT)))
@@ -24,10 +26,10 @@ class NagCommands(object):
                 end = int(time.mktime(getdatetimefromnicetime(endtime, datetime.fromtimestamp(start)).timetuple()))
             except Exception:
                 return 'Error: "EndTime" not in correct format.'
-            
-        values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author, 
+
+        values = {'fixed': 1, 'trigger_id': 0, 'duration': 0, 'author': author,
                   'start_time': start, 'end_time': end, 'comment': comment}
-        
+
         if self.nag.classname() == 'servicegroup':
             values['servicegroup_name'] = self.nag.servicegroup_name
             command = 'SCHEDULE_SERVICEGROUP_SVC_DOWNTIME;<servicegroup_name>;<start_time>;<end_time>;<fixed>;<trigger_id>;<duration>;<author>;<comment>'
@@ -43,10 +45,10 @@ class NagCommands(object):
 
         for value in values:
             command = command.replace('<' + value + '>', str(values[value]))
-        
+
         if command.find('<') > 0:
             return 'Error: Incomplete Nagios command file format substitution '
-        
+
         command = '[' + str(int(time.time())) + '] ' + command
 
         if doappend:
@@ -60,5 +62,5 @@ class NagCommands(object):
             except Exception, e:
                 print e
                 return 'Error: Appending to the Nagios command file'
-        
+
         return command

@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 
 import re
-from Nag import Nag
-from NagList import NagList
+
+from nagparser.Model.NagList import NagList
+from nagparser.Model import Nag, Host, Service, ServiceGroup
+
 
 def parse(config):
     tempobjs = []
-    
     files = config.files
     importantservicegroups = config.IMPORTANTSERVICEGROUPS
-    
-    nag = None
 
+    nag = None
     for filename in files:
         tempfile = open(filename)
         content = tempfile.read()
         tempfile.close()
-        
+
         if nag == None:
             nag = Nag()
         if '.cache' in filename:
@@ -25,20 +25,20 @@ def parse(config):
             sectionsnames = ['hoststatus', 'servicestatus', 'programstatus']
         else:
             raise Exception('Invalid filename detected')
-        
+
         for section in sectionsnames:
-            pat = re.compile(section +' \{([\S\s]*?)\}', re.DOTALL)
-    
+            pat = re.compile(section + ' \{([\S\s]*?)\}', re.DOTALL)
+
             for sectioncontent in pat.findall(content):
-                if section == 'hoststatus': 
-                    temp = Nag.Host(nag)
-                elif section == 'servicestatus': 
-                    temp = Nag.Service(nag)
+                if section == 'hoststatus':
+                    temp = Host(nag)
+                elif section == 'servicestatus':
+                    temp = Service(nag)
                 elif section == 'programstatus':
                     temp = nag
                 elif section == 'define servicegroup':
-                    temp = Nag.ServiceGroup(nag)
-                
+                    temp = ServiceGroup(nag)
+
                 for attr in sectioncontent.splitlines():
                     attr = attr.strip()
                     if len(attr) == 0 or attr.startswith('#'):
@@ -50,16 +50,25 @@ def parse(config):
                             delim = '='
 
                         shortattr = attr.split(delim)[0].lower()
-                        temp.__dict__[shortattr] = attr.replace(shortattr+delim, '')
+                        value = attr.replace(shortattr + delim, '')
+                        try:
+                            value = int(str(value))
+                        except ValueError:
+                            try:
+                                value = float(str(value))
+                            except ValueError:
+                                pass
+
+                        temp.__dict__[shortattr] = value
                 tempobjs.append(temp)
 
-    hosts = [x for x in tempobjs if isinstance(x, Nag.Host)]
-    services = [x for x in tempobjs if isinstance(x, Nag.Service)]
-    servicegroups = [x for x in tempobjs if isinstance(x, Nag.ServiceGroup)]
+    hosts = [x for x in tempobjs if isinstance(x, Host)]
+    services = [x for x in tempobjs if isinstance(x, Service)]
+    servicegroups = [x for x in tempobjs if isinstance(x, ServiceGroup)]
 
     nag.importantservicegroups = importantservicegroups
     nag.config = config
-    
+
     if len(hosts):
         nag.hosts = NagList(hosts)
     if len(services):
