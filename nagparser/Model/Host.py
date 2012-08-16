@@ -19,9 +19,9 @@ class Host(Base):
     def name(self):
         return self.host_name
 
-    @property
-    def status(self):
+    def getstatus(self, *arg):
         return servicesstatus(self.services)
+    status = property(getstatus)
 
     def laststatuschange(self, returntimesincenow=True):
         lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \

@@ -47,9 +47,9 @@ class ServiceGroup(Base):
     def name(self):
         return self.alias
 
-    @property
-    def status(self):
+    def getstatus(self, *arg):
         return servicesstatus(self.services)
+    status = property(getstatus)
 
     def laststatuschange(self, returntimesincenow=True):
         lastchange = max(self.services, key=lambda x: x.laststatuschange(returntimesincenow=False)). \

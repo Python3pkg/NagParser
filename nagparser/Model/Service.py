@@ -30,9 +30,7 @@ class Service(Base):
     def name(self):
         return self.service_description
 
-    @property
-    def status(self):
-
+    def getstatus(self, *arg):
         isdowntime = False
         if int(self.scheduled_downtime_depth) > 0:
             isdowntime = True
@@ -51,6 +49,7 @@ class Service(Base):
             return 'unknown', isdowntime
         else:
             return 'ok', isdowntime
+    status = property(getstatus)
 
     def laststatuschange(self, returntimesincenow=True, timestamp=None):
         if timestamp:

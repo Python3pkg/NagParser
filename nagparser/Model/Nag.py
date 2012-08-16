@@ -29,9 +29,10 @@ class Nag(Base):
     def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
 
-    @property
-    def status(self, onlyimportant=False):
+
+    def getstatus(self, onlyimportant=False):
         return servicesstatus(self.getservicegroups(onlyimportant))
+    status = property(getstatus)
 
     def getbadhosts(self):
         return self.getbad(Host)
