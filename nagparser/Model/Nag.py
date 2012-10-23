@@ -26,6 +26,10 @@ class Nag(Base):
     name = ''
 
     @property
+    def generated(self):
+        return datetime.fromtimestamp(float(self.created))
+
+    @property
     def lastupdated(self):
         return datetime.fromtimestamp(float(self.last_command_check))
 
