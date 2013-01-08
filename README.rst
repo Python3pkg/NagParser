@@ -1,4 +1,4 @@
-NagPasrser
+NagParser
 ****************
 
 This project lives at https://github.com/zebpalmer/NagParser
