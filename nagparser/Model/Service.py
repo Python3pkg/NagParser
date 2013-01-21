@@ -24,6 +24,7 @@ class Service(Base):
 
     @property
     def host(self):
+        # pylint: disable=E1103
         return NagList([x for x in self.nag.hosts if x.host_name == self.host_name]).first
 
     @property
@@ -34,6 +35,7 @@ class Service(Base):
         isdowntime = False
         if int(self.scheduled_downtime_depth) > 0:
             isdowntime = True
+        # pylint: disable=E1103
         if ((time.time() - self.nag.config.STALE_THRESHOLD) > int(self.next_check) and
             self.active_checks_enabled == 1 and
             self.nag.config.IGNORE_STALE_DATA == False):
@@ -65,6 +67,7 @@ class Service(Base):
     @property
     def servicegroups(self):
         servicegroups = []
+        # pylint: disable=E1103
         for servicegroup in self.nag.getservicegroups():
             if self in servicegroup.services:
                 servicegroups.append(servicegroup)

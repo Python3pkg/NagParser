@@ -22,7 +22,7 @@ def parse(config):
         if '.cache' in filename:
             sectionsnames = ['define servicegroup']
         elif '.dat' in filename:
-            sectionsnames = ['hoststatus', 'servicestatus', 'programstatus']
+            sectionsnames = ['hoststatus', 'servicestatus', 'programstatus', 'info']
         else:
             raise Exception('Invalid filename detected')
 
@@ -34,7 +34,7 @@ def parse(config):
                     temp = Host(nag)
                 elif section == 'servicestatus':
                     temp = Service(nag)
-                elif section == 'programstatus':
+                elif section in ['programstatus', 'info']:
                     temp = nag
                 elif section == 'define servicegroup':
                     temp = ServiceGroup(nag)

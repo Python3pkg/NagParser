@@ -13,6 +13,7 @@ class Host(Base):
 
     @property
     def services(self):
+        # pylint: disable=E1103
         return NagList([x for x in self.nag.services if x.host_name == self.host_name])
 
     @property
