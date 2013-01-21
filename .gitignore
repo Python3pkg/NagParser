@@ -1,4 +1,4 @@
-# ignore settings so we don't accidently commit an API key
+# ignore settings so we don't accidentally commit an API key
 settings.cfg
 *.pyc
 # other files, we don't need
