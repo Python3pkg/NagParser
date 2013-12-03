@@ -1,11 +1,9 @@
+from datetime import datetime
+
 from NagList import NagList
 from Base import Base, servicesstatus
-
 from nagparser.Model import Host, ServiceGroup
-
 from nagparser.Services.nicetime import getnicetimefromdatetime
-
-from datetime import datetime
 
 
 class Nag(Base):
@@ -19,8 +17,8 @@ class Nag(Base):
         self.__servicegroups = [None, None]
         self.hosts = None
         self.services = None
-        self._servicegroups = None
-        self.last_command_check = None
+        self._servicegroups = []
+        self.last_command_check = 0
         self.importantservicegroups = None
 
     name = ''

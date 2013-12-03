@@ -1,13 +1,12 @@
+import time
+import types
+import json
+
+from datetime import datetime
+
 from NagCommands import NagCommands
 from NagList import NagList
 from NagConfig import NagConfig
-
-import time
-from datetime import datetime
-
-import types
-
-import json
 
 
 class Base(object):
@@ -117,7 +116,11 @@ class Base(object):
 
 
 def servicesstatus(services):
-    hasdowntime = max([x.status[1] for x in services])
+    if services:
+        hasdowntime = max([x.status[1] for x in services])
+    else:
+        hasdowntime = 0
+
     if len([x for x in services if x.status[0] == 'stale']):
         return 'unknown', hasdowntime
 

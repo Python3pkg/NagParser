@@ -27,7 +27,7 @@ def parse(config):
             raise Exception('Invalid filename detected')
 
         for section in sectionsnames:
-            pat = re.compile(section + ' \{([\S\s]*?)\}', re.DOTALL)
+            pat = re.compile(section + ' \{([\S\s]*?)\\t}', re.DOTALL)
 
             for sectioncontent in pat.findall(content):
                 if section == 'hoststatus':
