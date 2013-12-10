@@ -2,7 +2,7 @@ from distutils.core import setup
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
-VERSION_PATCH = 30
+VERSION_PATCH = 31
 versionstr = '%s.%s.%s' % (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
 # only supporting python2.x at the moment, will support 3.x once the project matures a bit
