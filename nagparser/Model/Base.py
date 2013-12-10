@@ -124,16 +124,16 @@ def servicesstatus(services):
     if len([x for x in services if x.status[0] == 'stale']):
         return 'unknown', hasdowntime
 
-    if len([x for x in services if x.status[0] == 'critical' and x.status[1] == False]):
+    if len([x for x in services if x.status[0] == 'critical' and x.status[1] is False]):
         return 'critical', hasdowntime
 
-    elif len([x for x in services if x.status[0] == 'warning' and x.status[1] == False]):
+    elif len([x for x in services if x.status[0] == 'warning' and x.status[1] is False]):
         return 'warning', hasdowntime
 
-    elif len([x for x in services if x.status[0] == 'ok' and x.status[1] == True]):
+    elif len([x for x in services if x.status[0] in ['ok', 'unknown'] and x.status[1] is True]):
         return 'downtime', hasdowntime
 
-    elif len([x for x in services if x.status[0] == 'unknown' or x.status[0] == 'stale']):
+    elif len([x for x in services if x.status[0] == 'unknown']):
         return 'unknown', hasdowntime
     else:
         return 'ok', hasdowntime
