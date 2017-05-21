@@ -1,5 +1,5 @@
-from NagList import NagList
-from Base import Base, servicesstatus
+from .NagList import NagList
+from .Base import Base, servicesstatus
 
 from nagparser.Services.nicetime import getnicetimefromdatetime
 

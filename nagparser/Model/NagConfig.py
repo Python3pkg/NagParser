@@ -26,7 +26,7 @@ class NagConfig(object):
         return self.basicAPIKEYS
 
     def _set_basicapikeys(self, apikeys):
-        if type(apikeys) is not types.ListType:
+        if type(apikeys) is not list:
             apikeys = [apikeys]
         self.basicAPIKEYS = apikeys
 

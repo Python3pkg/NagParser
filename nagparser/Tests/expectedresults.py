@@ -1,7 +1,7 @@
 import pickle
 
 
-from nagfactoryTests import nagfromtestdata
+from .nagfactoryTests import nagfromtestdata
 
 expectedresultsfolder = 'ExpectedResults'
 
@@ -14,4 +14,4 @@ def buildexpectedresults(nag):
 if __name__ == '__main__':
     #Fully hydrated nag object with test data
     buildexpectedresults(nagfromtestdata())
-    print 'done'
+    print('done')

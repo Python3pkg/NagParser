@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 def examplegetpermissionssoverridefunction(apikey):
-    print "I'm in coolbeans"
+    print("I'm in coolbeans")
     return ['Cool Beans']
 
 import nagparser
@@ -25,7 +25,7 @@ nag = nagparser.parse(config)
 
 servicegroupstatuses = [x.status for x in nag.getservicegroups(onlyimportant = False)]
 for status in list(set(servicegroupstatuses)):
-    print servicegroupstatuses.count(status)
+    print(servicegroupstatuses.count(status))
 
 
 #json = nag.genoutput('json', prittyprint = False)

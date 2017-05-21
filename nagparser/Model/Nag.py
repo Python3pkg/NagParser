@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from NagList import NagList
-from Base import Base, servicesstatus
+from .NagList import NagList
+from .Base import Base, servicesstatus
 from nagparser.Model import Host, ServiceGroup
 from nagparser.Services.nicetime import getnicetimefromdatetime
 

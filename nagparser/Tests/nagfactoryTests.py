@@ -3,7 +3,7 @@ import unittest
 from nagparser import parse
 from nagparser.Model import Nag
 
-from NagConfigTests import buildtestnagconfig
+from .NagConfigTests import buildtestnagconfig
 
 
 def nagfromtestdata():

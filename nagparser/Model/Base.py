@@ -4,9 +4,9 @@ import json
 
 from datetime import datetime
 
-from NagCommands import NagCommands
-from NagList import NagList
-from NagConfig import NagConfig
+from .NagCommands import NagCommands
+from .NagList import NagList
+from .NagConfig import NagConfig
 
 
 class Base(object):
@@ -32,7 +32,7 @@ class Base(object):
         output = []
         for attr in self.__dict__:
             attrtype = type(self.__dict__[attr])
-            if attrtype is not types.ListType and attrtype is not NagList and attrtype is not NagConfig \
+            if attrtype is not list and attrtype is not NagList and attrtype is not NagConfig \
                 and attrtype is not tuple and not issubclass(attrtype, Base) and not attr == '_nagcreated':
                 output.append((attr, self.__dict__[attr]))
 
@@ -87,7 +87,7 @@ class Base(object):
         for obj in items:
             temp = obj.genoutput(outputformat=outputformat, finaloutput=False)
             if outputformat == 'json':
-                if obj.classname() + 's' not in output.keys():
+                if obj.classname() + 's' not in list(output.keys()):
                     output[obj.classname() + 's'] = []
                 output[obj.classname() + 's'].append(temp)
 

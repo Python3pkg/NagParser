@@ -1,4 +1,4 @@
-from Services.nagfactory import parse
-from Services.nicetime import getnicetimefromdatetime, getdatetimefromnicetime
+from .Services.nagfactory import parse
+from .Services.nicetime import getnicetimefromdatetime, getdatetimefromnicetime
 
-from Model.NagConfig import NagConfig
+from .Model.NagConfig import NagConfig

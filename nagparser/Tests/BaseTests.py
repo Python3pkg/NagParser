@@ -4,8 +4,8 @@ import pickle
 
 from nagparser.Model.NagCommands import NagCommands
 
-from nagfactoryTests import nagfromtestdata
-from expectedresults import expectedresultsfolder
+from .nagfactoryTests import nagfromtestdata
+from .expectedresults import expectedresultsfolder
 
 #Fully hydrated nag object with test data
 nag = nagfromtestdata()
@@ -20,7 +20,7 @@ class BaseTests(unittest.TestCase):
             self.assertEqual(nag.attributes, pickle.load(f))
 
     def test_getbad(self):
-        print nag.status
+        print(nag.status)
 
 if __name__ == '__main__':
     unittest.main()

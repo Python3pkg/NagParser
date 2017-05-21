@@ -59,8 +59,8 @@ class NagCommands(object):
                     commandfile = os.open(self.nag.nag.config.NAGIOS_CMD_FILE, os.O_RDWR | os.O_NONBLOCK)
                     os.write(commandfile, command + '\n')
                     os.close(commandfile)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 return 'Error: Appending to the Nagios command file'
 
         return command
